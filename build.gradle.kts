@@ -26,7 +26,19 @@ kotlin {
                 implementation(compose.desktop.currentOs)
             }
         }
-        val jvmTest by getting
+        val jvmTest by getting {}
+
+        val commonMain by getting {
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                implementation(compose.components.resources)
+
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+            }
+        }
     }
 }
 
