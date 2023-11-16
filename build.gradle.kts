@@ -24,21 +24,16 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-            }
-        }
-        val jvmTest by getting {}
-
-        val commonMain by getting {
-            dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-                implementation(compose.components.resources)
-
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+
+                implementation("moe.tlaster:precompose:1.5.7")
+                implementation("moe.tlaster:precompose-viewmodel:1.5.7")
+
+                implementation("uk.co.caprica:vlcj:4.7.0")
             }
         }
+
+        val jvmTest by getting {}
     }
 }
 
