@@ -8,7 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import engine.MainViewModel
+import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.viewmodel.viewModel
 
@@ -31,17 +31,23 @@ fun MainPanel() {
         Column(
             Modifier
                 .weight(3f)
-                .then(borderStyle())
                 .fillMaxHeight()
         ) {
             Row(Modifier.weight(4f).then(borderStyle(Color.Red))) {
                 VideoPlayerImpl(
-                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                    url = viewModel.videoUrl
+                    url = viewModel.timelineModel.getCurrentVideoUrl(),
+                    isPaused = viewModel.playerModel.isPaused,
+                    volume = viewModel.playerModel.volume,
+                    speed = viewModel.playerModel.speed,
+                    seekTime = viewModel.timelineModel.setSegmentTime,
+                    isFullscreen = false,
+                    progressState = viewModel.playerModel.progressState,
+                    Modifier.fillMaxWidth().fillMaxHeight(),
+                    onFinish = {}
                 )
             }
 
-            Row(Modifier.weight(1f).then(borderStyle())) {
+            Row(Modifier.weight(1f)) {
                 PlayerControls()
             }
         }

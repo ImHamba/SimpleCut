@@ -5,25 +5,32 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import engine.MainViewModel
+import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
+import ui.components.PauseButton
+import ui.components.TimeDisplay
 
 @Composable
 fun PlayerControls() {
-    val options = listOf("D:\\My stuff\\Gym\\95kg squat.mp4", "D:\\My stuff\\Gym\\135kg deadlift.mp4")
-    var vidChoice by remember { mutableStateOf(0) }
-
     val viewModel = viewModel() { MainViewModel() }
+
     Column() {
-        // timeline
+        // timeline panel
         Row(
             Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .weight(1f)
-                .then(borderStyle())
         ) {
-            Text(text = "${viewModel.counter}")
+            Timeline()
+        }
+
+        Row(
+            Modifier.fillMaxWidth()
+                .fillMaxHeight()
+                .weight(1f)
+        ) {
+            TimeDisplay()
         }
 
         // player and trimming controls
@@ -34,20 +41,16 @@ fun PlayerControls() {
                 .then(borderStyle())
         ) {
             Button(onClick = {
-                viewModel.incrementCounter()
-                viewModel.videoUrl = options[vidChoice]
-                vidChoice = 1 - vidChoice
+                viewModel.timelineModel.moveToSegment(0)
             })
             {
-                Text("Change Video")
+                Text("Restart")
             }
 
-            Button(onClick = {
-                viewModel.incrementCounter()
-            })
-            {
-                Text("Increment")
-            }
+            PauseButton(viewModel.playerModel.isPaused)
+
+
         }
     }
 }
+

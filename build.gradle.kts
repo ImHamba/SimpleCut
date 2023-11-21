@@ -24,12 +24,13 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 
                 implementation("moe.tlaster:precompose:1.5.7")
                 implementation("moe.tlaster:precompose-viewmodel:1.5.7")
 
                 implementation("uk.co.caprica:vlcj:4.7.0")
+
+                implementation(compose.material3)
             }
         }
 
