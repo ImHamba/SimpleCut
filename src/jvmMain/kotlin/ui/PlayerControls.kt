@@ -56,7 +56,8 @@ fun PlayerControls() {
             horizontalArrangement = Arrangement.Center
         ) {
             Button(
-                onClick = { viewModel.timelineModel.moveToSegment(0) }
+                onClick = { viewModel.timelineModel.moveToSegment(0) },
+                enabled = viewModel.timelineModel.segments.size > 0
             )
             {
                 Text("Restart")
@@ -66,13 +67,33 @@ fun PlayerControls() {
 
             Button(
                 onClick = {
-                    val splitTime =
-                        viewModel.playerModel.progressState.value.time - viewModel.timelineModel.getCurrentSegment().startTime
-                    viewModel.timelineModel.splitSegment(splitTime = splitTime)
-                }
+                    val splitTime = viewModel.playerModel.progressState.value.time
+
+                    // only split if not at boundary of segment
+                    if (splitTime != viewModel.timelineModel.getCurrentSegment().startTime
+                        && splitTime != viewModel.timelineModel.getCurrentSegment().endTime
+                    )
+                        viewModel.timelineModel.splitSegment(splitTime = splitTime)
+                },
+                enabled = viewModel.timelineModel.segments.size > 0
             )
             {
                 Text("Cut")
+            }
+
+            Button(
+                onClick = {
+                    val selected = viewModel.timelineModel.selectedSegmentIndex
+                    if (selected != null) {
+                        viewModel.timelineModel.deleteSegment(selected)
+                        viewModel.timelineModel.selectedSegmentIndex = null
+                    }
+
+                },
+                enabled = viewModel.timelineModel.selectedSegmentIndex != null
+            )
+            {
+                Text("Delete")
             }
 
         }

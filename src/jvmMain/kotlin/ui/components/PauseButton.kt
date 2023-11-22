@@ -12,9 +12,12 @@ fun PauseButton(isPaused: Boolean) {
 
     val text = buttonLabel(isPaused)
 
-    Button(onClick = {
-        viewModel.togglePlayerPause()
-    })
+    Button(
+        onClick = {
+            viewModel.togglePlayerPause()
+        },
+        enabled = viewModel.timelineModel.segments.size > 0
+    )
     {
         Text(text = text)
     }

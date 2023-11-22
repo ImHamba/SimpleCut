@@ -20,15 +20,7 @@ class MainViewModel : ViewModel() {
         timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\135kg deadlift.mp4", 10f, 13.5F))
         timelineModel.moveToSegment(0)
     }
-
-//    // a variable that can be toggled to trigger recomposition
-//    var recomposeTrigger by mutableStateOf(false)
-//        private set
-//
-//    fun triggerRecompose() {
-//        recomposeTrigger = !recomposeTrigger
-//    }
-
+    
     fun togglePlayerPause() {
         // dont unpause if we are already paused and at end of timeline
         if (playerModel.isPaused && timelineModel.atEndOfTimeline(playerModel.progressState.value.time)) {

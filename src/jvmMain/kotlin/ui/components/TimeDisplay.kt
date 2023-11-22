@@ -11,19 +11,25 @@ import java.text.DecimalFormat
 fun TimeDisplay(modifier: Modifier = Modifier) {
     val viewModel = viewModel() { MainViewModel() }
 
+    // get the total time along the timeline up to the current reported player time in the current segment
     val tlTime = viewModel.timelineModel.playerTimeToTimelineTime(viewModel.playerModel.progressState.value.time)
     var oldTlTime by remember { mutableStateOf(tlTime) }
     var displayTime: Float
 
-    if (tlTime < 0) displayTime = oldTlTime
+    // dont display wacky values when vlc loads a new media
+    if (tlTime < 0)
+        displayTime = oldTlTime
     else {
         displayTime = tlTime
         oldTlTime = tlTime
     }
 
+    // dont display wacky values outside of the timeline duration
     displayTime = displayTime.coerceIn(0f, viewModel.timelineModel.getDuration())
 
+    // format time nicely
     val minutes = displayTime.toInt() / 60
-    val formattedSeconds = DecimalFormat("00.000").format(displayTime % 60)
-    Text(text = "$minutes:$formattedSeconds", modifier = modifier)
+    val formattedMins = DecimalFormat("00").format(minutes)
+    val formattedSeconds = DecimalFormat("00.00").format(displayTime % 60)
+    Text(text = "$formattedMins:$formattedSeconds", modifier = modifier)
 }

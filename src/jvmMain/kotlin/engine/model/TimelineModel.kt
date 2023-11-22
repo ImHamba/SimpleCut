@@ -18,12 +18,36 @@ class TimelineModel {
         segments.add(segment)
     }
 
-    fun deleteSegment(index: Int) {
-        segments.removeAt(index)
+    fun deleteSegment(deleteIndex: Int) {
+        segments.removeAt(deleteIndex)
+
+        // if the last segment was deleted return early
+        if (segments.size == 0) {
+            currentSegmentIndex = 0
+            return
+        }
+
+        // if the current segment was deleted and we're at segment 0, set the time to start of timeline
+        // if we're at some other segment, set the time to the end of the preceding segment
+        if (currentSegmentIndex == deleteIndex) {
+            if (deleteIndex == 0)
+                seekedTime = getCurrentSegment().startTime
+            else {
+                currentSegmentIndex = deleteIndex - 1
+                seekedTime = getCurrentSegment().endTime
+            }
+        } else if (currentSegmentIndex > deleteIndex) {
+            currentSegmentIndex -= 1
+        }
+
     }
 
     fun getCurrentSegment(): TimelineSegment {
-        return segments[currentSegmentIndex]
+        return if (segments.size > 0)
+            segments[currentSegmentIndex]
+        else
+        // if no segments, return an empty placeholder segment
+            TimelineSegment("", 0f, 1f)
     }
 
     fun atLastSegment(): Boolean {
@@ -48,20 +72,23 @@ class TimelineModel {
 
     // splits a segment into two parts based on a time along that segment
     fun splitSegment(index: Int = currentSegmentIndex, splitTime: Float) {
+        val segmentToSplit = segments[index]
 
-        val segment = segments[index]
+        if (splitTime == segmentToSplit.startTime || splitTime == segmentToSplit.endTime)
+            throw IllegalArgumentException("Tried to split timeline segment at its boundary")
 
-        if (splitTime >= segment.getDuration()) throw IllegalArgumentException("Tried to split timeline segment beyond its duration")
+        if (splitTime !in segmentToSplit.startTime..segmentToSplit.endTime)
+            throw IllegalArgumentException("Tried to split timeline segment outside its time period")
 
         // create two new segments that make up the split segment
-        val middleTime = segment.startTime + splitTime
-        val part1 = TimelineSegment(segment.videoUrl, segment.startTime, middleTime)
-        val part2 = TimelineSegment(segment.videoUrl, middleTime, segment.endTime)
+        val part1 = TimelineSegment(segmentToSplit.videoUrl, segmentToSplit.startTime, splitTime)
+        val part2 = TimelineSegment(segmentToSplit.videoUrl, splitTime, segmentToSplit.endTime)
 
         // delete old segment and insert two new segments in its place
-        deleteSegment(index)
+        segments.removeAt(index)
         addSegmentAt(part1, index)
         addSegmentAt(part2, index + 1)
+        moveToSegment(index + 1)
     }
 
     // determines the segment and time within that segment based on a given time along the timeline
@@ -140,7 +167,7 @@ class TimelineModel {
 
         // iterate through segments until the fraction is within the start and end of the segment
         for ((index, segment) in segments.withIndex()) {
-            println("frac: $posFraction, start: ${(cumuDuration / tlDuration)}, end: ${(cumuDuration + segment.getDuration() / tlDuration)}")
+//            println("frac: $posFraction, start: ${(cumuDuration / tlDuration)}, end: ${(cumuDuration + segment.getDuration() / tlDuration)}")
             if (posFraction in (cumuDuration / tlDuration)..(cumuDuration + segment.getDuration() / tlDuration)) {
                 return index
             }
