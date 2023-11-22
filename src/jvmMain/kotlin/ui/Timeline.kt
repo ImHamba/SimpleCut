@@ -52,54 +52,52 @@ fun Timeline() {
     var sliderEnabled by remember { mutableStateOf(false) }
     val rulerHeight = 13.dp
 
-    BoxWithConstraints {
-        Slider(
-            value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
-            onValueChange = {
-                if (!sliderEnabled) return@Slider
+    Slider(
+        value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
+        onValueChange = {
+            if (!sliderEnabled) return@Slider
 
-                // update temporary position while dragging
-                tempSliderPos = it
-            },
-            onValueChangeFinished = {
-                if (!sliderEnabled) return@Slider
+            // update temporary position while dragging
+            tempSliderPos = it
+        },
+        onValueChangeFinished = {
+            if (!sliderEnabled) return@Slider
 
-                // once drag has completed, update the timeline model with the final value
-                viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
-                tempSliderPos = 0f
-            },
-            thumb = { Playhead() },
-            track = {
-                Track(
-                    Modifier.pointerInput(Unit) {
-                        // disable slider and select correct segment based on where click occurred
-                        detectTapUnconsumed { offset ->
-                            sliderEnabled = offset.y < rulerHeight.toPx()
-                            if (!sliderEnabled) {
-                                println("click x: ${offset.x}, max x: ${(maxWidth - defaultSliderThumbWidth).toPx()}")
-                                val clickPosFrac = offset.x / (maxWidth - defaultSliderThumbWidth).toPx()
+            // once drag has completed, update the timeline model with the final value
+            viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
+            tempSliderPos = 0f
+        },
+        thumb = { Playhead() },
+        track = {
+            Track(
+                Modifier.then(borderStyle()).pointerInput(Unit) {
+                    // disable slider and select correct segment based on where click occurred
+                    detectTapUnconsumed { offset ->
+                        sliderEnabled = offset.y < rulerHeight.toPx()
+                        if (!sliderEnabled) {
+                            val clickPosFrac = offset.x / size.width
 
-                                // determine which segment was clicked on
-                                val clickedSegment =
-                                    viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
+                            // determine which segment was clicked on
+                            val clickedSegment =
+                                viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
 
-                                // deselect segment if it is already selected, otherwise set it as selected
-                                if (viewModel.timelineModel.selectedSegmentIndex == clickedSegment)
-                                    viewModel.timelineModel.selectedSegmentIndex = null
-                                else
-                                    viewModel.timelineModel.selectedSegmentIndex = clickedSegment
-                            }
+                            // deselect segment if it is already selected, otherwise set it as selected
+                            if (viewModel.timelineModel.selectedSegmentIndex == clickedSegment)
+                                viewModel.timelineModel.selectedSegmentIndex = null
+                            else
+                                viewModel.timelineModel.selectedSegmentIndex = clickedSegment
                         }
-                    },
-                    rulerHeight
-                )
-            },
-            enabled = viewModel.timelineModel.segments.size > 0,
-            modifier = Modifier
-                .fillMaxHeight()
+                    }
+                },
+                rulerHeight
+            )
+        },
+        enabled = viewModel.timelineModel.segments.size > 0,
+        modifier = Modifier
+            .fillMaxHeight()
 
-        )
-    }
+    )
+
 }
 
 @Composable

@@ -1,11 +1,16 @@
 package util
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Divider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -38,4 +43,26 @@ fun VerticalDivider() {
 @Composable
 fun HorizontalDivider() {
     Divider(color = Color.Black)
+}
+
+// Box element that requests focus if it ever loses focus
+// adapted from https://stackoverflow.com/questions/70838476/onkeyevent-without-focus-in-jetpack-compose
+@Composable
+fun AlwaysFocusedBox(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val focusRequester = remember { FocusRequester() }
+    var hasFocus by remember { mutableStateOf(false) }
+
+    if (!hasFocus) {
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
+    }
+
+    Box(modifier
+        .focusRequester(focusRequester)
+        .onFocusChanged { hasFocus = it.hasFocus }
+        .focusable()
+    ) {
+        content()
+    }
 }
