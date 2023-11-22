@@ -56,7 +56,10 @@ fun PlayerControls() {
             horizontalArrangement = Arrangement.Center
         ) {
             Button(
-                onClick = { viewModel.timelineModel.moveToSegment(0) },
+                onClick = {
+                    viewModel.timelineModel.moveToSegment(0)
+                    viewModel.triggerRecompose()
+                },
                 enabled = viewModel.timelineModel.segments.size > 0
             )
             {
@@ -67,13 +70,7 @@ fun PlayerControls() {
 
             Button(
                 onClick = {
-                    val splitTime = viewModel.playerModel.progressState.value.time
-
-                    // only split if not at boundary of segment
-                    if (splitTime != viewModel.timelineModel.getCurrentSegment().startTime
-                        && splitTime != viewModel.timelineModel.getCurrentSegment().endTime
-                    )
-                        viewModel.timelineModel.splitSegment(splitTime = splitTime)
+                    viewModel.splitCurrentSegment()
                 },
                 enabled = viewModel.timelineModel.segments.size > 0
             )

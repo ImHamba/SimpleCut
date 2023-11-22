@@ -1,5 +1,6 @@
 package ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -22,12 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
+import org.bytedeco.ffmpeg.global.avutil
+import org.bytedeco.javacv.FFmpegFrameFilter
+import org.bytedeco.javacv.FFmpegFrameGrabber
+import org.bytedeco.javacv.Java2DFrameConverter
 import util.HorizontalDivider
 import util.Triangle
 import util.VerticalDivider
 import kotlin.math.floor
-
-val defaultSliderThumbWidth = 20.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,6 +147,7 @@ private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
                 TimelineSegment(
                     widthFrac,
                     segment.videoUrl.substringAfterLast('\\'),
+                    segment.videoUrl,
                     index == viewModel.timelineModel.selectedSegmentIndex,
                     index == viewModel.timelineModel.currentSegmentIndex,
                     5.dp
@@ -195,6 +200,7 @@ suspend fun PointerInputScope.detectTapUnconsumed(
 private fun RowScope.TimelineSegment(
     widthFrac: Float,
     label: String,
+    videoUrl: String,
     isSelected: Boolean,
     isCurrent: Boolean,
     cornerRadius: Dp
@@ -220,5 +226,38 @@ private fun RowScope.TimelineSegment(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+
+        ImageFromVideo(videoUrl)
+
     }
+
+}
+
+@Composable
+private fun ImageFromVideo(videoUrl: String) {
+    // grab frame from video
+    val grabber = FFmpegFrameGrabber(videoUrl)
+    grabber.start()
+    var image = grabber.grabImage()
+
+    // rotate the image if the video has rotation
+    val videoRotation = grabber.displayRotation
+    if (videoRotation != 0.0) {
+        val filter =
+            FFmpegFrameFilter("rotate=${videoRotation / 180 * Math.PI}", grabber.imageWidth, grabber.imageHeight)
+        filter.start()
+
+        filter.push(image)
+        image = filter.pull()
+
+        filter.stop()
+        filter.close()
+    }
+
+    val buff_img = Java2DFrameConverter().convert(image)
+
+    Image(bitmap = buff_img.toComposeImageBitmap(), contentDescription = null, modifier = Modifier.fillMaxHeight())
+
+    grabber.stop()
+    grabber.close()
 }

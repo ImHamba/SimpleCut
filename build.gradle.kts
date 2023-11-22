@@ -24,14 +24,17 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation(compose.material3)
 
+                // for viewmodel functionality
                 implementation("moe.tlaster:precompose:1.5.7")
                 implementation("moe.tlaster:precompose-viewmodel:1.5.7")
 
+                // for displaying video
                 implementation("uk.co.caprica:vlcj:4.7.0")
 
-                implementation(compose.material3)
-                implementation("org.jetbrains.compose.ui:ui-util:1.4.0")
+                // for displaying video thumbnails
+                implementation("org.bytedeco:javacv-platform:1.5.9")
             }
         }
 

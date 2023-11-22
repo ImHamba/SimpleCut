@@ -30,8 +30,10 @@ internal fun VideoPlayerImpl(
     isFullscreen: Boolean,
     progressState: MutableState<Progress>,
     modifier: Modifier,
-    onFinish: (() -> Unit)?
+    onFinish: (() -> Unit)?,
+    recomposeTrigger: Boolean
 ) {
+
     val viewModel = viewModel { MainViewModel() }
 
     val mediaPlayerComponent = remember { initializeMediaPlayerComponent() }
@@ -44,7 +46,7 @@ internal fun VideoPlayerImpl(
     /* OR the following code and using SwingPanel(factory = { factory }, ...) */
     // val factory by rememberUpdatedState(mediaPlayerComponent)
 
-    LaunchedEffect(url) {
+    LaunchedEffect(url, recomposeTrigger) {
         // if video is paused when url is changed, add a listener that will pause video immediately
         // using set-paused option only shows the video as a black screen initially until it is played again
         if (isPaused) {
