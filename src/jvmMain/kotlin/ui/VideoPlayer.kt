@@ -32,8 +32,6 @@ internal fun VideoPlayerImpl(
     modifier: Modifier,
     onFinish: (() -> Unit)?
 ) {
-    println("recompose player")
-
     val viewModel = viewModel { MainViewModel() }
 
     val mediaPlayerComponent = remember { initializeMediaPlayerComponent() }
@@ -63,7 +61,7 @@ internal fun VideoPlayerImpl(
 
         mediaPlayer.media().start(
             url,
-            ":start-time=${viewModel.timelineModel.setSegmentTime}"
+            ":start-time=${viewModel.timelineModel.seekedTime}"
         )
     }
 

@@ -31,6 +31,7 @@ kotlin {
                 implementation("uk.co.caprica:vlcj:4.7.0")
 
                 implementation(compose.material3)
+                implementation("org.jetbrains.compose.ui:ui-util:1.4.0")
             }
         }
 

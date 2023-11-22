@@ -7,8 +7,9 @@ import java.lang.IndexOutOfBoundsException
 class TimelineModel {
     var segments = mutableStateListOf<TimelineSegment>()
     var currentSegmentIndex by mutableStateOf(0)
+    var selectedSegmentIndex: Int? by mutableStateOf(null)
 
-    var setSegmentTime: Float by mutableStateOf(0f)
+    var seekedTime: Float by mutableStateOf(0f)
 
 //    var currentSegmentTime: Double by mutableStateOf(0.0)
 //    var currentTimelineTime: Double by mutableStateOf(0.0)
@@ -46,7 +47,8 @@ class TimelineModel {
 
 
     // splits a segment into two parts based on a time along that segment
-    fun splitSegment(index: Int, splitTime: Float) {
+    fun splitSegment(index: Int = currentSegmentIndex, splitTime: Float) {
+
         val segment = segments[index]
 
         if (splitTime >= segment.getDuration()) throw IllegalArgumentException("Tried to split timeline segment beyond its duration")
@@ -84,7 +86,7 @@ class TimelineModel {
     fun moveToPositionOnTimeline(time: Float) {
         val (segmentIndex, segmentTime) = getPositionOnTimeline(time)
         currentSegmentIndex = segmentIndex
-        setSegmentTime = segmentTime
+        seekedTime = segmentTime
     }
 
     // get total duration of timeline
@@ -101,7 +103,7 @@ class TimelineModel {
         if (index >= segments.size || index < 0) throw IndexOutOfBoundsException("Index is out of bounds for timeline segments list")
 
         currentSegmentIndex = index
-        setSegmentTime = segments[index].startTime
+        seekedTime = segments[index].startTime
 
 //        println("index: $index, url: ${getCurrentVideoUrl()}, time: $currentSegmentTime")
     }
@@ -120,13 +122,33 @@ class TimelineModel {
 
     fun startNextSegment() {
         currentSegmentIndex++
-        setSegmentTime = getCurrentSegment().startTime
+        seekedTime = getCurrentSegment().startTime
 
         println("Next segment: ${getCurrentSegment()}")
     }
 
     fun playerTimeToTimelineTime(reportedPlayerTime: Float): Float {
         return getDurationUntilSegment(currentSegmentIndex) + (reportedPlayerTime - getCurrentSegment().startTime)
+    }
+
+    // converts a position along the timeline as a number between 0 and 1 to the correpsonding segment index
+    fun getSegmentAtPositionFraction(posFraction: Float): Int? {
+        if (posFraction !in 0f..1f) return null
+
+        var cumuDuration = 0f
+        val tlDuration = getDuration()
+
+        // iterate through segments until the fraction is within the start and end of the segment
+        for ((index, segment) in segments.withIndex()) {
+            println("frac: $posFraction, start: ${(cumuDuration / tlDuration)}, end: ${(cumuDuration + segment.getDuration() / tlDuration)}")
+            if (posFraction in (cumuDuration / tlDuration)..(cumuDuration + segment.getDuration() / tlDuration)) {
+                return index
+            }
+
+            cumuDuration += segment.getDuration() / tlDuration
+        }
+
+        return null
     }
 
 }

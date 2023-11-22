@@ -1,13 +1,12 @@
 package ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.viewmodel.viewModel
@@ -33,27 +32,31 @@ fun MainPanel() {
                 .weight(3f)
                 .fillMaxHeight()
         ) {
-            Row(Modifier.weight(4f).then(borderStyle(Color.Red))) {
+            Row(Modifier.weight(3f)) {
                 VideoPlayerImpl(
                     url = viewModel.timelineModel.getCurrentVideoUrl(),
                     isPaused = viewModel.playerModel.isPaused,
                     volume = viewModel.playerModel.volume,
                     speed = viewModel.playerModel.speed,
-                    seekTime = viewModel.timelineModel.setSegmentTime,
+                    seekTime = viewModel.timelineModel.seekedTime,
                     isFullscreen = false,
                     progressState = viewModel.playerModel.progressState,
-                    Modifier.fillMaxWidth().fillMaxHeight(),
+                    Modifier.fillMaxWidth().fillMaxHeight().then(borderStyle()),
                     onFinish = {}
                 )
             }
+
+//            Divider(color = Color.Black)
 
             Row(Modifier.weight(1f)) {
                 PlayerControls()
             }
         }
 
+        Spacer(Modifier.fillMaxHeight().width(1.dp).background(Color.Black))
+
         // video sources import panel and
-        Column(Modifier.weight(1f).fillMaxHeight().then(borderStyle())) {
+        Column(Modifier.weight(1f).fillMaxHeight()) {
             SourcesPane()
         }
     }
