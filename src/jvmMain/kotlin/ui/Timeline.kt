@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material.Text
-import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.*
@@ -20,22 +19,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import engine.model.TimelineSegment
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
-import org.bytedeco.javacv.FFmpegFrameFilter
-import org.bytedeco.javacv.FFmpegFrameGrabber
-import org.bytedeco.javacv.Java2DFrameConverter
 import util.HorizontalDivider
 import util.Triangle
 import util.VerticalDivider
-import util.getFrameFromVideo
-import java.awt.image.BufferedImage
 import kotlin.math.floor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -140,26 +134,24 @@ private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
     Column(modifier) {
         TimeRuler(rulerHeight, viewModel.timelineModel.getDuration())
 
-        HorizontalDivider()
+        Spacer(Modifier.height(2.dp))
 
         // segments
-        Row(Modifier.fillMaxHeight())
+        Row(Modifier.fillMaxHeight().border(Dp.Hairline, Color.Black, RoundedCornerShape(5.dp)))
         {
-            VerticalDivider()
 
             for ((index, segment) in viewModel.timelineModel.segments.withIndex()) {
                 val widthFrac = segment.getDuration() / viewModel.timelineModel.getDuration()
                 TimelineSegment(
                     widthFrac,
                     segment.videoUrl.substringAfterLast('\\'),
-                    segment.image,
+                    segment,
                     index == viewModel.timelineModel.selectedSegmentIndex,
                     index == viewModel.timelineModel.currentSegmentIndex,
                     5.dp
                 )
             }
 
-            VerticalDivider()
         }
     }
 }
@@ -205,23 +197,24 @@ suspend fun PointerInputScope.detectTapUnconsumed(
 private fun RowScope.TimelineSegment(
     widthFrac: Float,
     label: String,
-    image: ImageBitmap,
+//    image: ImageBitmap?,
+    segment: TimelineSegment,
     isSelected: Boolean,
     isCurrent: Boolean,
     cornerRadius: Dp
 ) {
     Column(
         Modifier
-            .padding(1.dp)
             .weight(widthFrac)
             .fillMaxHeight()
             .clip(RoundedCornerShape(cornerRadius))
-            .border(Dp.Hairline, Color.Black, RoundedCornerShape(cornerRadius))
+
+            .background(Color.White)
             .then(
                 // colour based on selection or if it is current
-                if (isSelected) Modifier.background(Color.Green)
-                else if (isCurrent) Modifier.background(Color.Yellow)
-                else Modifier
+                if (isSelected) Modifier.border(1.dp, Color.Red, RoundedCornerShape(cornerRadius))
+//                else if (isCurrent) Modifier.background(Color.Yellow)
+                else Modifier.border(Dp.Hairline, Color.Black, RoundedCornerShape(cornerRadius))
             )
             .padding(start = cornerRadius, bottom = 5.dp)
     ) {
@@ -232,14 +225,22 @@ private fun RowScope.TimelineSegment(
             overflow = TextOverflow.Ellipsis
         )
 
-        Image(
-            bitmap = image,
-            contentDescription = null,
-            modifier = Modifier.fillMaxHeight()
-                .padding(top = 2.dp)
-                .wrapContentWidth(unbounded = true, align = Alignment.Start) // allow to overflow end of segment
-                .clip(RoundedCornerShape(5.dp))
-        )
+        val image = segment.thumbnail
 
+        // if the thumbnail from this segment is null, trigger the segment to load the thumbnail
+        if (image == null) {
+            LaunchedEffect(segment) {
+                segment.loadThumbnail()
+            }
+        } else {
+            Image(
+                bitmap = image,
+                contentDescription = null,
+                modifier = Modifier.fillMaxHeight()
+                    .padding(top = 2.dp)
+                    .wrapContentWidth(unbounded = true, align = Alignment.Start) // allow to overflow end of segment
+                    .clip(RoundedCornerShape(5.dp))
+            )
+        }
     }
 }

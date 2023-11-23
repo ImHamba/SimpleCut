@@ -3,6 +3,8 @@ package ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
@@ -12,7 +14,9 @@ import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.viewmodel.viewModel
 import ui.components.FilledMenuBar
+import ui.components.TimeDisplay
 import util.AlwaysFocusedBox
+import util.HorizontalDivider
 import util.VerticalDivider
 
 
@@ -38,42 +42,46 @@ fun MainPanel() {
 
     Column {
 
-        Row {
+        Row(Modifier.weight(1f)) {
+            // video sources import panel and
+            Column(Modifier.weight(1f).fillMaxHeight().then(panelStyle(bottom = 5.dp, end = 5.dp))) {
+                SourcesPane(100.dp, 10.dp)
+            }
+
+//            VerticalDivider()
+
             // player and player controls
             Column(
                 Modifier
                     .weight(3f)
                     .fillMaxHeight()
+                    .then(panelStyle(bottom = 5.dp, start = 5.dp, internalPadding = 0.dp))
             ) {
                 // video display
-                Row(Modifier.weight(3f)) {
-                    VideoPlayerImpl(
-                        url = viewModel.timelineModel.getCurrentVideoUrl(),
-                        isPaused = viewModel.playerModel.isPaused,
-                        volume = viewModel.playerModel.volume,
-                        speed = viewModel.playerModel.speed,
-                        seekTime = viewModel.timelineModel.seekedTime,
-                        isFullscreen = false,
-                        progressState = viewModel.playerModel.progressState,
-                        Modifier.fillMaxWidth().fillMaxHeight().then(borderStyle()),
-                        onFinish = {},
-                        recomposeTrigger = viewModel.recomposeTrigger
-                    )
-                }
+                VideoPlayerImpl(
+                    url = viewModel.timelineModel.getCurrentVideoUrl(),
+                    isPaused = viewModel.playerModel.isPaused,
+                    volume = viewModel.playerModel.volume,
+                    speed = viewModel.playerModel.speed,
+                    seekTime = viewModel.timelineModel.seekedTime,
+                    isFullscreen = false,
+                    progressState = viewModel.playerModel.progressState,
+                    Modifier.fillMaxWidth().fillMaxHeight().weight(1f),
+                    onFinish = {},
+                    recomposeTrigger = viewModel.recomposeTrigger
+                )
 
+                PlayerControls(Modifier.height(50.dp))
 
-                // all player controls - timeline, buttons etc
-                Row() {
-                    PlayerControls()
-                }
             }
+        }
 
-            VerticalDivider()
+//        HorizontalDivider()
 
-            // video sources import panel and
-            Column(Modifier.weight(1f).fillMaxHeight()) {
-                SourcesPane()
-            }
+        // all player controls - timeline, buttons etc
+        Row(Modifier.height(120.dp).then(panelStyle(top = 5.dp))) {
+            TimeDisplay(Modifier.align(Alignment.CenterVertically))
+            Timeline()
         }
     }
 }
@@ -96,6 +104,11 @@ private fun keypressHandler(): Modifier {
                 viewModel.timelineModel.selectedSegmentIndex = null
             }
         }
+
+        // unselect segment on esc down
+        if (it.key == Key.Escape && it.type == KeyEventType.KeyDown)
+            viewModel.timelineModel.selectedSegmentIndex = null
+
         false
     }
 }

@@ -30,6 +30,14 @@ class MainViewModel : ViewModel() {
             )
         )
         timelineModel.moveToSegment(0)
+
+        sourcesModel.addSources(
+            setOf(
+                "D:\\My stuff\\Gym\\95kg squat.mp4",
+                "D:\\My stuff\\Gym\\135kg deadlift.mp4",
+                "D:\\My stuff\\Coding\\Java\\VideoCutter\\src\\resources\\video\\testvid.mp4"
+            )
+        )
     }
 
     fun togglePlayerPause() {

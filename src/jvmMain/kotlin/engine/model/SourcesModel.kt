@@ -1,17 +1,37 @@
 package engine.model
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.ImageBitmap
+import util.getFrameFromVideo
+
 class SourcesModel {
-    var sources = mutableSetOf<String>()
+    var sources = mutableStateListOf<VideoSource>()
+    var selectedSource: VideoSource? by mutableStateOf(null)
 
     fun addSource(filePath: String) {
-        sources.add(filePath)
+        // add source as long as its not already in sources
+        if (filePath !in sources.map { it.videoUrl })
+            sources.add(VideoSource(filePath))
     }
 
     fun addSources(filePaths: Set<String>) {
-        sources.addAll(filePaths)
+        for (path in filePaths)
+            addSource(path)
     }
 
-    fun removeSource(filePath: String) {
-        sources.remove(filePath)
+    fun removeSource(videoSource: VideoSource) {
+        sources.remove(videoSource)
+    }
+}
+
+data class VideoSource(var videoUrl: String) {
+    val thumbnail: ImageBitmap
+
+    init {
+        // get thumbnail image upon creation of VideoSource object
+        thumbnail = getFrameFromVideo(videoUrl)
     }
 }

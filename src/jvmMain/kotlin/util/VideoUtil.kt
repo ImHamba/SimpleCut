@@ -18,9 +18,8 @@ fun getFrameFromVideo(videoUrl: String, time: Float = 0f): ImageBitmap {
     FFmpegFrameGrabber(videoUrl).use { grabber ->
         grabber.start()
 
-        println("frame rate: ${grabber.frameRate} ${grabber.videoFrameRate}, frame: ${(grabber.frameRate * time).toInt()}")
-
-        grabber.timestamp = (time * 1000000).roundToLong()
+        if (time > 0f)
+            grabber.timestamp = (time * 1000000).roundToLong()
 
         var imageFrame = grabber.grabImage()
         val videoRotation = grabber.displayRotation
