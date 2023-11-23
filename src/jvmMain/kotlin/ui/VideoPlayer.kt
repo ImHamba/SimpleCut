@@ -71,7 +71,6 @@ internal fun VideoPlayerImpl(
     LaunchedEffect(speed) { mediaPlayer.controls().setRate(speed) }
     LaunchedEffect(volume) { mediaPlayer.audio().setVolume(volume.toPercentage()) }
     LaunchedEffect(isPaused) {
-        println("Set pause to $isPaused")
         mediaPlayer.controls().setPause(isPaused)
     }
     LaunchedEffect(isFullscreen) {
@@ -192,7 +191,6 @@ private fun MediaPlayer.checkTimelineProgress() {
             val reportedPlayerTime = viewModel.playerModel.progressState.value.time
 
             if (viewModel.timelineModel.atEndOfTimeline(reportedPlayerTime) && !viewModel.playerModel.isPaused) {
-                println("Reached end of timeline")
                 viewModel.playerModel.isPaused = true
 
                 // no need to continue checking. any movement in the timeline will recompose the player and start a new

@@ -25,7 +25,6 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(compose.material3)
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
                 // for viewmodel functionality
                 implementation("moe.tlaster:precompose:1.5.7")
@@ -39,6 +38,9 @@ kotlin {
 
                 // for file dialog
                 implementation("org.lwjgl:lwjgl-tinyfd:3.3.3")
+                implementation("org.lwjgl:lwjgl:3.3.3:natives-windows")
+
+                implementation("org.jetbrains.compose.components:components-splitpane-desktop:1.5.10")
 
             }
         }

@@ -10,7 +10,7 @@ import moe.tlaster.precompose.viewmodel.viewModel
 fun PauseButton(isPaused: Boolean) {
     val viewModel = viewModel() { MainViewModel() }
 
-    val text = buttonLabel(isPaused)
+    val text = if (isPaused) "Play" else "Pause"
 
     Button(
         onClick = {
@@ -21,12 +21,4 @@ fun PauseButton(isPaused: Boolean) {
     {
         Text(text = text)
     }
-}
-
-
-private fun buttonLabel(isPaused: Boolean): String {
-    val text = if (isPaused) "Play" else "Pause"
-
-    println("ispaused: $isPaused, text set to $text")
-    return text
 }

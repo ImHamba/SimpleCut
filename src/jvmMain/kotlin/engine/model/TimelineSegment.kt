@@ -4,10 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import kotlinx.coroutines.*
 import util.getFrameFromVideo
 
-class TimelineSegment(var videoUrl: String, var startTime: Float, var endTime: Float) {
+data class TimelineSegment(var videoUrl: String, var startTime: Float, var endTime: Float) {
     var thumbnail: ImageBitmap? by mutableStateOf(null)
         private set
 
@@ -19,9 +18,7 @@ class TimelineSegment(var videoUrl: String, var startTime: Float, var endTime: F
         thumbnail = getFrameFromVideo(videoUrl, startTime)
     }
 
-
     fun getDuration(): Float {
         return endTime - startTime
     }
-
 }
