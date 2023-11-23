@@ -12,8 +12,7 @@ import java.util.*
 
 class PlayerModel {
 
-    var url by mutableStateOf("")
-    var isPaused by mutableStateOf(false)
+    var isPaused by mutableStateOf(true)
     var volume: Float by mutableStateOf(0f)
     var speed: Float by mutableStateOf(0f)
 //    var seek: Float by mutableStateOf(0f)

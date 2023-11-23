@@ -2,6 +2,7 @@ package engine.viewmodel
 
 import androidx.compose.runtime.*
 import engine.model.PlayerModel
+import engine.model.SourcesModel
 import engine.model.TimelineModel
 import engine.model.TimelineSegment
 import kotlinx.coroutines.delay
@@ -12,14 +13,15 @@ class MainViewModel : ViewModel() {
 
     val timelineModel = TimelineModel()
     val playerModel = PlayerModel()
+    val sourcesModel = SourcesModel()
 
     var recomposeTrigger by mutableStateOf(false)
 
     init {
         //test segments
-//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 39.5f, 42F))
-//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 50f, 52.5F))
-//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\135kg deadlift.mp4", 10f, 13.5F))
+        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 39.5f, 42F))
+        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 50f, 52.5F))
+        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\135kg deadlift.mp4", 10f, 13.5F))
         timelineModel.addSegment(
             TimelineSegment(
                 "D:\\My stuff\\Coding\\Java\\VideoCutter\\src\\resources\\video\\testvid.mp4",
@@ -51,5 +53,9 @@ class MainViewModel : ViewModel() {
             && splitTime != timelineModel.getCurrentSegment().endTime
         )
             timelineModel.splitSegment(splitTime = splitTime)
+    }
+
+    private fun importVideoFiles(filePaths: Set<String>) {
+        println(filePaths)
     }
 }

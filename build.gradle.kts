@@ -35,6 +35,8 @@ kotlin {
 
                 // for displaying video thumbnails
                 implementation("org.bytedeco:javacv-platform:1.5.9")
+
+                implementation("org.lwjgl:lwjgl-tinyfd:3.3.3")
             }
         }
 

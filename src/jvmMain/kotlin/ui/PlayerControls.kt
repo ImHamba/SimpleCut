@@ -16,33 +16,18 @@ import ui.components.PauseButton
 import ui.components.TimeDisplay
 
 @Composable
-fun PlayerControls() {
+fun PlayerControls(modifier: Modifier = Modifier) {
     val viewModel = viewModel() { MainViewModel() }
 
-    Column() {
+    Column(modifier) {
         // timeline panel
         Row(
             Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
-                .weight(1f)
+                .height(100.dp)
         ) {
+            TimeDisplay(Modifier.align(Alignment.CenterVertically))
             Timeline()
-        }
-
-        Divider(color = Color.Black)
-
-        Row(
-            Modifier.fillMaxWidth()
-                .fillMaxHeight()
-                .weight(1f)
-        ) {
-            Box(
-                Modifier.fillMaxWidth()
-                    .fillMaxHeight()
-            ) {
-                TimeDisplay(Modifier.align(Alignment.Center))
-            }
         }
 
         Divider(color = Color.Black)
@@ -50,8 +35,7 @@ fun PlayerControls() {
         // player and trimming controls
         Row(
             Modifier.fillMaxWidth()
-                .fillMaxHeight()
-                .weight(1f),
+                .height(50.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

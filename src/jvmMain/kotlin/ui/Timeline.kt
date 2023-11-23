@@ -6,7 +6,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material.Text
+import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.*
@@ -15,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.*
@@ -24,16 +28,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
-import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.javacv.FFmpegFrameFilter
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
 import util.HorizontalDivider
 import util.Triangle
 import util.VerticalDivider
+import util.getFrameFromVideo
+import java.awt.image.BufferedImage
 import kotlin.math.floor
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun Timeline() {
     val viewModel = viewModel() { MainViewModel() }
@@ -56,52 +61,52 @@ fun Timeline() {
     var sliderEnabled by remember { mutableStateOf(false) }
     val rulerHeight = 13.dp
 
-    Slider(
-        value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
-        onValueChange = {
-            if (!sliderEnabled) return@Slider
+    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+        Slider(
+            value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
+            onValueChange = {
+                if (!sliderEnabled) return@Slider
 
-            // update temporary position while dragging
-            tempSliderPos = it
-        },
-        onValueChangeFinished = {
-            if (!sliderEnabled) return@Slider
+                // update temporary position while dragging
+                tempSliderPos = it
+            },
+            onValueChangeFinished = {
+                if (!sliderEnabled) return@Slider
 
-            // once drag has completed, update the timeline model with the final value
-            viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
-            tempSliderPos = 0f
-        },
-        thumb = { Playhead() },
-        track = {
-            Track(
-                Modifier.then(borderStyle()).pointerInput(Unit) {
-                    // disable slider and select correct segment based on where click occurred
-                    detectTapUnconsumed { offset ->
-                        sliderEnabled = offset.y < rulerHeight.toPx()
-                        if (!sliderEnabled) {
-                            val clickPosFrac = offset.x / size.width
+                // once drag has completed, update the timeline model with the final value
+                viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
+                tempSliderPos = 0f
+            },
+            thumb = { Playhead() },
+            track = {
+                Track(
+                    Modifier.pointerInput(Unit) {
+                        // disable slider and select correct segment based on where click occurred
+                        detectTapUnconsumed { offset ->
+                            sliderEnabled = offset.y < rulerHeight.toPx()
+                            if (!sliderEnabled) {
+                                val clickPosFrac = offset.x / size.width
 
-                            // determine which segment was clicked on
-                            val clickedSegment =
-                                viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
+                                // determine which segment was clicked on
+                                val clickedSegment =
+                                    viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
 
-                            // deselect segment if it is already selected, otherwise set it as selected
-                            if (viewModel.timelineModel.selectedSegmentIndex == clickedSegment)
-                                viewModel.timelineModel.selectedSegmentIndex = null
-                            else
-                                viewModel.timelineModel.selectedSegmentIndex = clickedSegment
+                                // deselect segment if it is already selected, otherwise set it as selected
+                                if (viewModel.timelineModel.selectedSegmentIndex == clickedSegment)
+                                    viewModel.timelineModel.selectedSegmentIndex = null
+                                else
+                                    viewModel.timelineModel.selectedSegmentIndex = clickedSegment
+                            }
                         }
-                    }
-                },
-                rulerHeight
-            )
-        },
-        enabled = viewModel.timelineModel.segments.size > 0,
-        modifier = Modifier
-            .fillMaxHeight()
-
-    )
-
+                    },
+                    rulerHeight
+                )
+            },
+            enabled = viewModel.timelineModel.segments.size > 0,
+            modifier = Modifier
+                .fillMaxHeight()
+        )
+    }
 }
 
 @Composable
@@ -147,7 +152,7 @@ private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
                 TimelineSegment(
                     widthFrac,
                     segment.videoUrl.substringAfterLast('\\'),
-                    segment.videoUrl,
+                    segment.image,
                     index == viewModel.timelineModel.selectedSegmentIndex,
                     index == viewModel.timelineModel.currentSegmentIndex,
                     5.dp
@@ -200,14 +205,14 @@ suspend fun PointerInputScope.detectTapUnconsumed(
 private fun RowScope.TimelineSegment(
     widthFrac: Float,
     label: String,
-    videoUrl: String,
+    image: ImageBitmap,
     isSelected: Boolean,
     isCurrent: Boolean,
     cornerRadius: Dp
 ) {
     Column(
         Modifier
-            .padding(vertical = 1.dp)
+            .padding(1.dp)
             .weight(widthFrac)
             .fillMaxHeight()
             .clip(RoundedCornerShape(cornerRadius))
@@ -218,46 +223,23 @@ private fun RowScope.TimelineSegment(
                 else if (isCurrent) Modifier.background(Color.Yellow)
                 else Modifier
             )
+            .padding(start = cornerRadius, bottom = 5.dp)
     ) {
         Text(
             label,
-            modifier = Modifier.padding(horizontal = 5.dp),
             fontSize = 10.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
 
-        ImageFromVideo(videoUrl)
+        Image(
+            bitmap = image,
+            contentDescription = null,
+            modifier = Modifier.fillMaxHeight()
+                .padding(top = 2.dp)
+                .wrapContentWidth(unbounded = true, align = Alignment.Start) // allow to overflow end of segment
+                .clip(RoundedCornerShape(5.dp))
+        )
 
     }
-
-}
-
-@Composable
-private fun ImageFromVideo(videoUrl: String) {
-    // grab frame from video
-    val grabber = FFmpegFrameGrabber(videoUrl)
-    grabber.start()
-    var image = grabber.grabImage()
-
-    // rotate the image if the video has rotation
-    val videoRotation = grabber.displayRotation
-    if (videoRotation != 0.0) {
-        val filter =
-            FFmpegFrameFilter("rotate=${videoRotation / 180 * Math.PI}", grabber.imageWidth, grabber.imageHeight)
-        filter.start()
-
-        filter.push(image)
-        image = filter.pull()
-
-        filter.stop()
-        filter.close()
-    }
-
-    val buff_img = Java2DFrameConverter().convert(image)
-
-    Image(bitmap = buff_img.toComposeImageBitmap(), contentDescription = null, modifier = Modifier.fillMaxHeight())
-
-    grabber.stop()
-    grabber.close()
 }
