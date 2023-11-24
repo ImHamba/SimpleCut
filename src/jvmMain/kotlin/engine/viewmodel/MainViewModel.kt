@@ -2,6 +2,7 @@ package engine.viewmodel
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntSize
 import engine.model.*
 import moe.tlaster.precompose.viewmodel.ViewModel
 
@@ -17,22 +18,32 @@ class MainViewModel : ViewModel() {
 
     var recomposeTrigger by mutableStateOf(false)
 
+    // indicates the last type of ui element that was interacted with to determine what some keypresses do
+    // e.g. whether delete deletes selected source or segment
     private var lastSelectType: UiSelection? = null
+
+    // indicates whether the selected source is currently being dragged
     var sourceBeingDragged by mutableStateOf(false)
+    var dragCounter by mutableStateOf(0)
+
+    // stores position and size of timeline for detection of dragging source over it
+    var timelinePos by mutableStateOf(Offset(0f, 0f))
+    var timelineDims by mutableStateOf(IntSize(0, 0))
+
 
     init {
         //test segments
-        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 39.5f, 42F))
-        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 50f, 52.5F))
-        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\135kg deadlift.mp4", 10f, 13.5F))
-        timelineModel.addSegment(
-            TimelineSegment(
-                "D:\\My stuff\\Coding\\Java\\VideoCutter\\src\\resources\\video\\testvid.mp4",
-                20.5f,
-                25f
-            )
-        )
-        timelineModel.moveToSegment(0)
+//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 39.5f, 42F))
+//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 50f, 52.5F))
+//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\135kg deadlift.mp4", 10f, 13.5F))
+//        timelineModel.addSegment(
+//            TimelineSegment(
+//                "D:\\My stuff\\Coding\\Java\\VideoCutter\\src\\resources\\video\\testvid.mp4",
+//                20.5f,
+//                25f
+//            )
+//        )
+//        timelineModel.moveToSegment(0)
 
         sourcesModel.addSources(
             setOf(

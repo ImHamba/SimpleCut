@@ -16,7 +16,7 @@ import moe.tlaster.precompose.viewmodel.viewModel
 import org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi
 import org.jetbrains.compose.splitpane.HorizontalSplitPane
 import org.jetbrains.compose.splitpane.rememberSplitPaneState
-import ui.components.DragOverlay
+import ui.components.SourceDragOverlay
 import ui.components.FilledMenuBar
 import ui.components.SplitpaneHandle
 import ui.components.TimeDisplay
@@ -33,7 +33,7 @@ fun FrameWindowScope.App() {
             // this avoids losing focus when clicking on the vlc panel
             AlwaysFocusedBox(Modifier.then(keypressHandler())) {
                 FilledMenuBar()
-                DragOverlay {
+                SourceDragOverlay {
                     MainPanel()
                 }
             }

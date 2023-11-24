@@ -45,6 +45,7 @@ fun SourceIcon(
                 onDragStart = {
                     println("drag start")
                     viewModel.sourceBeingDragged = true
+                    viewModel.dragCounter++
                 },
                 onDrag = { _ -> },
                 onDragEnd = {

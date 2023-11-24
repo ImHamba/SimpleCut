@@ -17,13 +17,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import engine.model.TimelineSegment
 import engine.viewmodel.MainViewModel
-import kotlinx.coroutines.currentCoroutineContext
 import moe.tlaster.precompose.viewmodel.viewModel
 import util.Triangle
 import util.VerticalDivider
@@ -81,7 +82,7 @@ fun Timeline() {
 
                                 // determine which segment was clicked on
                                 val clickedSegment =
-                                    viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
+                                    viewModel.timelineModel.getSegmentIndexAtPositionFraction(clickPosFrac)
 
                                 clickedSegment?.let {
                                     viewModel.selectSegment(it)
@@ -127,13 +128,23 @@ private fun Playhead() {
 @Composable
 private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
     val viewModel = viewModel() { MainViewModel() }
-    Column(modifier) {
+    Column(modifier.fillMaxSize()) {
         TimeRuler(rulerHeight, viewModel.timelineModel.getDuration())
 
         Spacer(Modifier.height(2.dp))
 
         // segments
-        Row(Modifier.fillMaxHeight().border(Dp.Hairline, Color.Black, RoundedCornerShape(5.dp)))
+        Row(
+            Modifier
+                .fillMaxSize()
+                .border(Dp.Hairline, Color.Black, RoundedCornerShape(5.dp))
+
+                // update the timeline position and dimensions to allow detection of dragging sources onto timeline
+                .onGloballyPositioned {
+                    viewModel.timelinePos = it.positionInRoot()
+                    viewModel.timelineDims = it.size
+                }
+        )
         {
 
             for ((index, segment) in viewModel.timelineModel.segments.withIndex()) {

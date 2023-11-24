@@ -51,3 +51,13 @@ fun getFrameFromVideo(videoUrl: String, time: Float = 0f): ImageBitmap {
 
     return buffImage.toComposeImageBitmap()
 }
+
+fun getVideoDuration(videoUrl: String): Float {
+    val duration: Float
+    FFmpegFrameGrabber(videoUrl).use { grabber ->
+        grabber.start()
+        duration = (grabber.lengthInTime - 5) / 1000000f
+        grabber.stop()
+    }
+    return duration
+}

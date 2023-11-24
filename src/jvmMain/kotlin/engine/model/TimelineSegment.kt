@@ -10,7 +10,6 @@ import util.getFrameFromVideo
 
 data class TimelineSegment(var videoUrl: String, var startTime: Float, var endTime: Float) {
     var thumbnail: ImageBitmap? by mutableStateOf(null)
-        private set
 
     init {
         if (endTime <= startTime) throw IllegalArgumentException("Tried to create a TimelineSegment with endTime <= startTime")

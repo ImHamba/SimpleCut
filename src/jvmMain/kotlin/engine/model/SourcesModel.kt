@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import util.getFrameFromVideo
+import util.getVideoDuration
 
 class SourcesModel {
     var sources = mutableStateListOf<VideoSource>()
@@ -31,10 +32,6 @@ class SourcesModel {
 }
 
 data class VideoSource(var videoUrl: String) {
-    val thumbnail: ImageBitmap
-
-    init {
-        // get thumbnail image upon creation of VideoSource object
-        thumbnail = getFrameFromVideo(videoUrl)
-    }
+    val thumbnail: ImageBitmap = getFrameFromVideo(videoUrl)
+    val duration: Float = getVideoDuration(videoUrl)
 }

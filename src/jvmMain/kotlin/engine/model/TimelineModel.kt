@@ -11,13 +11,11 @@ class TimelineModel {
 
     var seekedTime: Float by mutableStateOf(0f)
 
-//    var currentSegmentTime: Double by mutableStateOf(0.0)
-//    var currentTimelineTime: Double by mutableStateOf(0.0)
-
     fun addSegment(segment: TimelineSegment) {
         segments.add(segment)
     }
 
+    // delete segment from timeline by index
     fun deleteSegment(deleteIndex: Int) {
         segments.removeAt(deleteIndex)
 
@@ -39,7 +37,14 @@ class TimelineModel {
         } else if (currentSegmentIndex > deleteIndex) {
             currentSegmentIndex -= 1
         }
+    }
 
+
+    // delete by reference to segment
+    fun deleteSegment(segment: TimelineSegment) {
+        val index = segments.indexOfFirst { it === segment }
+        if (index < 0) throw IllegalArgumentException("Tried to delete segment from timeline that was not in the timeline")
+        deleteSegment(index)
     }
 
     fun getCurrentSegment(): TimelineSegment {
@@ -159,7 +164,7 @@ class TimelineModel {
     }
 
     // converts a position along the timeline as a number between 0 and 1 to the correpsonding segment index
-    fun getSegmentAtPositionFraction(posFraction: Float): Int? {
+    fun getSegmentIndexAtPositionFraction(posFraction: Float): Int? {
         if (posFraction !in 0f..1f) return null
 
         var cumuDuration = 0f
