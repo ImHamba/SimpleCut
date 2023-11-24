@@ -13,7 +13,7 @@ import java.util.*
 class PlayerModel {
 
     var isPaused by mutableStateOf(true)
-    var volume: Float by mutableStateOf(0f)
+    var volume: Float by mutableStateOf(1f)
     var speed: Float by mutableStateOf(0f)
 //    var seek: Float by mutableStateOf(0f)
 

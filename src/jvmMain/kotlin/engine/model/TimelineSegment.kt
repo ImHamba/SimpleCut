@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import util.getFrameFromVideo
 
 data class TimelineSegment(var videoUrl: String, var startTime: Float, var endTime: Float) {
@@ -14,8 +16,10 @@ data class TimelineSegment(var videoUrl: String, var startTime: Float, var endTi
         if (endTime <= startTime) throw IllegalArgumentException("Tried to create a TimelineSegment with endTime <= startTime")
     }
 
-    fun loadThumbnail() {
-        thumbnail = getFrameFromVideo(videoUrl, startTime)
+    suspend fun loadThumbnail() {
+        withContext(Dispatchers.IO) {
+            thumbnail = getFrameFromVideo(videoUrl, startTime)
+        }
     }
 
     fun getDuration(): Float {

@@ -3,7 +3,6 @@ package ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -15,9 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,10 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import engine.model.TimelineSegment
 import engine.viewmodel.MainViewModel
+import kotlinx.coroutines.currentCoroutineContext
 import moe.tlaster.precompose.viewmodel.viewModel
-import util.HorizontalDivider
 import util.Triangle
 import util.VerticalDivider
+import util.detectDownClickUncomsumed
 import kotlin.math.floor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -76,7 +74,7 @@ fun Timeline() {
                 Track(
                     Modifier.pointerInput(Unit) {
                         // disable slider and select correct segment based on where click occurred
-                        detectTapUnconsumed { offset ->
+                        detectDownClickUncomsumed { offset ->
                             sliderEnabled = offset.y < rulerHeight.toPx()
                             if (!sliderEnabled) {
                                 val clickPosFrac = offset.x / size.width
@@ -84,7 +82,7 @@ fun Timeline() {
                                 // determine which segment was clicked on
                                 val clickedSegment =
                                     viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
-                                
+
                                 clickedSegment?.let {
                                     viewModel.selectSegment(it)
                                 }
@@ -177,17 +175,6 @@ private fun TimeRuler(rulerHeight: Dp, duration: Float) {
                 VerticalDivider()
             }
         }
-    }
-}
-
-// detects a downclick without consuming the event
-// adapted from https://proandroiddev.com/android-touch-system-part-5-how-gestures-work-in-jetpack-compose-ef7e74703b6a
-suspend fun PointerInputScope.detectTapUnconsumed(
-    onTap: ((Offset) -> Unit)
-) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        onTap(down.position)
     }
 }
 

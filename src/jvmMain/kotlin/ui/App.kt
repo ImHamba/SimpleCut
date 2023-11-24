@@ -1,34 +1,25 @@
 package ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
-import androidx.compose.ui.window.WindowScope
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.viewmodel.viewModel
 import org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi
 import org.jetbrains.compose.splitpane.HorizontalSplitPane
-import org.jetbrains.compose.splitpane.VerticalSplitPane
 import org.jetbrains.compose.splitpane.rememberSplitPaneState
 import ui.components.FilledMenuBar
 import ui.components.SplitpaneHandle
 import ui.components.TimeDisplay
 import util.AlwaysFocusedBox
-import util.HorizontalDivider
-import util.VerticalDivider
 import java.awt.Cursor
 
 
@@ -50,10 +41,8 @@ fun FrameWindowScope.App() {
 
 @OptIn(ExperimentalSplitPaneApi::class)
 @Composable
-fun WindowScope.MainPanel() {
+fun MainPanel() {
     val viewModel = viewModel() { MainViewModel() }
-
-
 
     Column {
         Row(Modifier.weight(1f)) {

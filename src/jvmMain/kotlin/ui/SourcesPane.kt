@@ -1,38 +1,40 @@
 package ui
 
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.WindowScope
 import engine.model.VideoSource
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
 import util.StackLeft
+import util.uriToAbsolutePath
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.*
-import java.io.File
-import javax.swing.Box
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun WindowScope.SourcesPane(colWidth: Dp, spacing: Dp) {
+fun SourcesPane(colWidth: Dp, spacing: Dp) {
     val viewModel = viewModel() { MainViewModel() }
 
     val sources = viewModel.sourcesModel.sources
     var previouslySelectedSource: VideoSource? by remember { mutableStateOf(null) }
+
+    var dndPanelVisible by remember { mutableStateOf(false) }
 
     Box(
         Modifier
@@ -40,6 +42,24 @@ fun WindowScope.SourcesPane(colWidth: Dp, spacing: Dp) {
             .onClick {
                 viewModel.sourcesModel.selectedSource = null
             }
+            .onExternalDrag(
+                onDrop = { dragValue ->
+                    // only allow drop if files were dropped
+                    if (dragValue.dragData is DragData.FilesList) {
+                        dndPanelVisible = false
+                        for (fileUri in (dragValue.dragData as DragData.FilesList).readFiles()) {
+                            try {
+                                viewModel.sourcesModel.addSource(uriToAbsolutePath(fileUri))
+                            } catch (ex: Exception) {
+                                ex.printStackTrace()
+                            }
+                        }
+                    }
+
+                },
+                onDragStart = { dndPanelVisible = true },
+                onDragExit = { dndPanelVisible = false }
+            )
     ) {
         val state = rememberLazyGridState()
         LazyVerticalGrid(
@@ -62,7 +82,6 @@ fun WindowScope.SourcesPane(colWidth: Dp, spacing: Dp) {
 
         VerticalScrollbar(adapter = rememberScrollbarAdapter(state), modifier = Modifier.align(Alignment.CenterEnd))
 
-        var dndPanelVisible by remember { mutableStateOf(false) }
 
         if (dndPanelVisible)
             Box(
@@ -84,20 +103,6 @@ fun WindowScope.SourcesPane(colWidth: Dp, spacing: Dp) {
                     textAlign = TextAlign.Center
                 )
             }
-
-
-        // initialise drag and dropping files onto window
-        if (window.dropTarget == null) {
-            window.dropTarget = initialiseDropTarget(
-                dropAction = { droppedFiles ->
-                    dndPanelVisible = false
-                    for (file in droppedFiles)
-                        viewModel.sourcesModel.addSource((file as File).absolutePath)
-                },
-                dragEnter = { dndPanelVisible = true },
-                dragExit = { dndPanelVisible = false }
-            )
-        }
     }
 }
 
@@ -113,8 +118,16 @@ private fun SourceIcon(
 ) {
     Column(modifier
         // set source as selected source on click
-        .onClick {
-            onClick()
+        .pointerInput(source) {
+            detectTapGestures {
+                println(source.videoUrl)
+                onClick()
+            }
+        }
+        .pointerInput(source) {
+            detectDragGestures { change, dragAmount ->
+
+            }
         }
     ) {
         val selectColor = Color(205, 231, 252)
@@ -199,3 +212,5 @@ private fun initialiseDropTarget(
         }
     }
 }
+
+
