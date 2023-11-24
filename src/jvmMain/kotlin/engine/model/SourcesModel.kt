@@ -13,8 +13,11 @@ class SourcesModel {
 
     fun addSource(filePath: String) {
         // add source as long as its not already in sources
-        if (filePath !in sources.map { it.videoUrl })
-            sources.add(VideoSource(filePath))
+        if (filePath !in sources.map { it.videoUrl }) {
+            val newSource = VideoSource(filePath)
+            sources.add(newSource)
+            selectedSource = newSource
+        }
     }
 
     fun addSources(filePaths: Set<String>) {

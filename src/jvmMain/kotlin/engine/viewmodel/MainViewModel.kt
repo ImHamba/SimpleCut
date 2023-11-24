@@ -1,6 +1,7 @@
 package engine.viewmodel
 
 import androidx.compose.runtime.*
+import androidx.compose.ui.geometry.Offset
 import engine.model.*
 import moe.tlaster.precompose.viewmodel.ViewModel
 
@@ -16,7 +17,8 @@ class MainViewModel : ViewModel() {
 
     var recomposeTrigger by mutableStateOf(false)
 
-    var lastSelectType: UiSelection? = null
+    private var lastSelectType: UiSelection? = null
+    var sourceBeingDragged by mutableStateOf(false)
 
     init {
         //test segments

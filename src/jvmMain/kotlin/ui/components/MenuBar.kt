@@ -34,7 +34,7 @@ fun FrameWindowScope.FilledMenuBar() {
 
 // uses tinyfiledialogs to bring up file picker
 // adapted from https://github.com/Wavesonics/compose-multiplatform-file-picker/blob/master/mpfilepicker/src/jvmMain/kotlin/com/darkrockstudios/libraries/mpfilepicker/FileChooser.kt
-internal fun openFilePicker(
+fun openFilePicker(
     initialDirectory: String = System.getProperty("user.home"),
     fileExtension: String = ""
 ): Set<String> =
@@ -53,11 +53,7 @@ internal fun openFilePicker(
             aFilterPatterns,
             null,
             true
-        )
-            // split the output string by | delimiter and convert to set
-            ?.let {
-                it.split('|').toSet()
-            }
+        )?.split('|')?.toSet()
 
         // if the output string was null, return an empty set
             ?: emptySet()
