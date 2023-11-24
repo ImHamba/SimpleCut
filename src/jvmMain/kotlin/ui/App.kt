@@ -15,6 +15,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
+import androidx.compose.ui.window.WindowScope
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.viewmodel.viewModel
@@ -49,7 +50,7 @@ fun FrameWindowScope.App() {
 
 @OptIn(ExperimentalSplitPaneApi::class)
 @Composable
-fun MainPanel() {
+fun WindowScope.MainPanel() {
     val viewModel = viewModel() { MainViewModel() }
 
 
@@ -135,13 +136,9 @@ private fun keypressHandler(): Modifier {
         if (it.key == Key.Spacebar && it.type == KeyEventType.KeyDown)
             viewModel.togglePlayerPause()
 
-        // delete selected segment on delete up
+        // delete selected ui element on delete up
         else if ((it.key == Key.Delete || it.key == Key.Backspace) && it.type == KeyEventType.KeyUp) {
-            val selected = viewModel.timelineModel.selectedSegmentIndex
-            if (selected != null) {
-                viewModel.timelineModel.deleteSegment(selected)
-                viewModel.timelineModel.selectedSegmentIndex = null
-            }
+            viewModel.deleteUiSelection()
         }
 
         // unselect segment on esc down

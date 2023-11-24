@@ -7,6 +7,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -28,3 +30,8 @@ fun panelStyle(
         .background(backColor)
         .padding(internalPadding)
 }
+
+val dashedStroke = Stroke(
+    width = 2f,
+    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 15f), 0f)
+)

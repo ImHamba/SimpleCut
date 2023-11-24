@@ -1,21 +1,22 @@
 package engine.viewmodel
 
 import androidx.compose.runtime.*
-import engine.model.PlayerModel
-import engine.model.SourcesModel
-import engine.model.TimelineModel
-import engine.model.TimelineSegment
-import kotlinx.coroutines.delay
+import engine.model.*
 import moe.tlaster.precompose.viewmodel.ViewModel
 
 
-class MainViewModel : ViewModel() {
+enum class UiSelection() {
+    SOURCE, SEGMENT
+}
 
+class MainViewModel : ViewModel() {
     val timelineModel = TimelineModel()
     val playerModel = PlayerModel()
     val sourcesModel = SourcesModel()
 
     var recomposeTrigger by mutableStateOf(false)
+
+    var lastSelectType: UiSelection? = null
 
     init {
         //test segments
@@ -63,7 +64,50 @@ class MainViewModel : ViewModel() {
             timelineModel.splitSegment(splitTime = splitTime)
     }
 
-    private fun importVideoFiles(filePaths: Set<String>) {
-        println(filePaths)
+    fun selectSegment(selectedSegmentIndex: Int) {
+        // deselect segment if it is already selected, otherwise set it as selected
+        if (timelineModel.selectedSegmentIndex == selectedSegmentIndex) {
+            timelineModel.selectedSegmentIndex = null
+            lastSelectType = null
+
+        } else {
+            timelineModel.selectedSegmentIndex = selectedSegmentIndex
+            lastSelectType = UiSelection.SEGMENT
+        }
+
+        // deselect the Source when interacting with sources panel
+        sourcesModel.selectedSource = null
+    }
+
+    fun selectSource(source: VideoSource) {
+        sourcesModel.selectedSource = source
+        lastSelectType = UiSelection.SOURCE
+
+        // deselect the timeline segment when interacting with sources panel
+        timelineModel.selectedSegmentIndex = null
+    }
+
+    fun deleteUiSelection() {
+        when (lastSelectType) {
+            UiSelection.SEGMENT -> {
+                // delete selected segment if its not null
+                timelineModel.selectedSegmentIndex?.let {
+                    timelineModel.deleteSegment(it)
+                    timelineModel.selectedSegmentIndex = null
+                }
+            }
+
+            UiSelection.SOURCE -> {
+                // delete selected source if its not null
+                sourcesModel.selectedSource?.let {
+                    sourcesModel.removeSource(it)
+                    sourcesModel.selectedSource = null
+                }
+            }
+
+            null -> {
+                // do nothing
+            }
+        }
     }
 }

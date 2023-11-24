@@ -1,6 +1,5 @@
 package ui
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -11,27 +10,36 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.window.WindowScope
 import engine.model.VideoSource
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
 import util.StackLeft
+import java.awt.datatransfer.DataFlavor
+import java.awt.dnd.*
+import java.io.File
+import javax.swing.Box
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SourcesPane(colWidth: Dp, spacing: Dp) {
+fun WindowScope.SourcesPane(colWidth: Dp, spacing: Dp) {
     val viewModel = viewModel() { MainViewModel() }
 
     val sources = viewModel.sourcesModel.sources
     var previouslySelectedSource: VideoSource? by remember { mutableStateOf(null) }
 
     Box(
-        Modifier.onClick {
-            println("abc")
-            viewModel.sourcesModel.selectedSource = null
-        }
+        Modifier
+            .fillMaxWidth()
+            .onClick {
+                viewModel.sourcesModel.selectedSource = null
+            }
     ) {
         val state = rememberLazyGridState()
         LazyVerticalGrid(
@@ -46,22 +54,56 @@ fun SourcesPane(colWidth: Dp, spacing: Dp) {
                     isSelected = source == viewModel.sourcesModel.selectedSource,
                     isPreviouslySelected = source == previouslySelectedSource,
                     onClick = {
-                        viewModel.sourcesModel.selectedSource = source
+                        viewModel.selectSource(source)
                         previouslySelectedSource = source
                     })
             }
-
-
         }
 
         VerticalScrollbar(adapter = rememberScrollbarAdapter(state), modifier = Modifier.align(Alignment.CenterEnd))
+
+        var dndPanelVisible by remember { mutableStateOf(false) }
+
+        if (dndPanelVisible)
+            Box(
+                Modifier.fillMaxWidth().fillMaxHeight()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color.White)
+                    .padding(5.dp)
+                    .drawBehind {
+                        drawRoundRect(
+                            color = Color.Gray,
+                            style = dashedStroke,
+                            cornerRadius = CornerRadius(3.dp.toPx())
+                        )
+                    }.padding(10.dp),
+            ) {
+                Text(
+                    text = "Drop Files Here to Import",
+                    modifier = Modifier.align(Alignment.Center),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+
+        // initialise drag and dropping files onto window
+        if (window.dropTarget == null) {
+            window.dropTarget = initialiseDropTarget(
+                dropAction = { droppedFiles ->
+                    dndPanelVisible = false
+                    for (file in droppedFiles)
+                        viewModel.sourcesModel.addSource((file as File).absolutePath)
+                },
+                dragEnter = { dndPanelVisible = true },
+                dragExit = { dndPanelVisible = false }
+            )
+        }
     }
 }
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-@Preview
 private fun SourceIcon(
     modifier: Modifier = Modifier,
     source: VideoSource,
@@ -118,6 +160,42 @@ private fun SourceIcon(
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 14.sp
             )
+        }
+    }
+}
+
+// adapted from https://dev.to/tkuenneth/from-swing-to-jetpack-compose-desktop-2-4a4h
+private fun initialiseDropTarget(
+    dropAction: (droppedFiles: List<*>) -> Unit,
+    dragEnter: () -> Unit = {},
+    dragExit: () -> Unit = {}
+): DropTarget {
+    return object : DropTarget() {
+        @Synchronized
+        override fun dragEnter(dtde: DropTargetDragEvent?) {
+//            super.dragEnter(dtde)
+            dragEnter()
+        }
+
+        @Synchronized
+        override fun dragExit(dte: DropTargetEvent?) {
+//            super.dragExit(dte)
+            dragExit()
+        }
+
+        @Synchronized
+        override fun drop(evt: DropTargetDropEvent) {
+            try {
+                evt.acceptDrop(DnDConstants.ACTION_REFERENCE)
+                val droppedFiles = evt
+                    .transferable.getTransferData(
+                        DataFlavor.javaFileListFlavor
+                    ) as List<*>
+
+                dropAction(droppedFiles)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
         }
     }
 }

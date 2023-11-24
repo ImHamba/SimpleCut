@@ -84,12 +84,10 @@ fun Timeline() {
                                 // determine which segment was clicked on
                                 val clickedSegment =
                                     viewModel.timelineModel.getSegmentAtPositionFraction(clickPosFrac)
-
-                                // deselect segment if it is already selected, otherwise set it as selected
-                                if (viewModel.timelineModel.selectedSegmentIndex == clickedSegment)
-                                    viewModel.timelineModel.selectedSegmentIndex = null
-                                else
-                                    viewModel.timelineModel.selectedSegmentIndex = clickedSegment
+                                
+                                clickedSegment?.let {
+                                    viewModel.selectSegment(it)
+                                }
                             }
                         }
                     },
