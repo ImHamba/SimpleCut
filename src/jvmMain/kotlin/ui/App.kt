@@ -83,7 +83,7 @@ fun MainPanel() {
                             seekTime = viewModel.timelineModel.seekedTime,
                             isFullscreen = false,
                             progressState = viewModel.playerModel.progressState,
-                            Modifier.fillMaxWidth().fillMaxHeight().weight(1f),
+                            modifier = Modifier.offset(x = 1.dp).fillMaxWidth().fillMaxHeight().weight(1f),
                             onFinish = {},
                             recomposeTrigger = viewModel.recomposeTrigger
                         )

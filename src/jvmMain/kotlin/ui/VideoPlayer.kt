@@ -1,9 +1,11 @@
 package ui
 
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.sun.jna.NativeLibrary
 import engine.viewmodel.MainViewModel
 import kotlinx.coroutines.delay
@@ -29,7 +31,7 @@ internal fun VideoPlayerImpl(
     seekTime: Float,
     isFullscreen: Boolean,
     progressState: MutableState<Progress>,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onFinish: (() -> Unit)?,
     recomposeTrigger: Boolean
 ) {
@@ -93,7 +95,7 @@ internal fun VideoPlayerImpl(
     SwingPanel(
         factory = factory,
         background = Color.Transparent,
-        modifier = modifier
+        modifier = modifier.offset(x = 100.dp)
     )
 }
 
