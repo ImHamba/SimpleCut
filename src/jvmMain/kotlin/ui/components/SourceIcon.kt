@@ -43,15 +43,11 @@ fun SourceIcon(
         .pointerInput(source) {
             detectDragGestures(
                 onDragStart = {
-                    println("drag start")
                     viewModel.sourceBeingDragged = true
                     viewModel.dragCounter++
                 },
                 onDrag = { _ -> },
-                onDragEnd = {
-                    println("drag end")
-                    viewModel.sourceBeingDragged = false
-                }
+                onDragEnd = { viewModel.sourceBeingDragged = false }
             )
         }
     ) {

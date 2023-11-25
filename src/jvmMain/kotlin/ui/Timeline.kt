@@ -35,6 +35,21 @@ import kotlin.math.floor
 @Composable
 fun Timeline() {
     val viewModel = viewModel() { MainViewModel() }
+
+//    // set up history tracking when segments update
+//    val TLSegments = viewModel.timelineModel.segments.toList()
+//    LaunchedEffect(TLSegments) {
+//        println("segments change detected")
+//        println("TL segments: ${viewModel.timelineModel.segments}")
+//        println("Lastest history segments: ${viewModel.timelineModel.history.currentSnapshot.segments}")
+//        if (TLSegments != viewModel.timelineModel.history.currentSnapshot.segments) {
+//            println("segments different to latest in history")
+//            viewModel.timelineModel.history.addRecord(viewModel.timelineModel.segments)
+//
+//            println("new ${viewModel.timelineModel.history}")
+//        }
+//    }
+
     val tlDuration = viewModel.timelineModel.getDuration()
 
     // clamp the player time to the start/end time of the current segment

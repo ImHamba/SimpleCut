@@ -69,12 +69,8 @@ fun SourceDragOverlay(content: @Composable () -> Unit) {
             val tly1 = viewModel.timelinePos.y
             val tly2 = viewModel.timelinePos.y + viewModel.timelineDims.height
 
-            println("$tlx1 $tlx2 $tly1 $tly2 ${cursorPos.x} ${cursorPos.y}")
-
             // if drag goes over the timeline, add segment
             if (cursorPos.x in tlx1..tlx2 && cursorPos.y in tly1..tly2) {
-                println("in")
-
                 // find which segment index the cursor is hovering over
                 val posFrac = (cursorPos.x - tlx1) / (tlx2 - tlx1)
                 val hoveredSegmentIndex = viewModel.timelineModel.getSegmentIndexAtPositionFraction(posFrac)
@@ -90,7 +86,6 @@ fun SourceDragOverlay(content: @Composable () -> Unit) {
 
                 // if the timeline has no elements, just add it in
                 else if (viewModel.timelineModel.segments.size == 0) {
-                    println("add")
                     viewModel.timelineModel.addSegment(newSegment)
                     viewModel.timelineModel.moveToSegment(0)
                 }

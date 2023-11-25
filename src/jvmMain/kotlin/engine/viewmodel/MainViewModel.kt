@@ -4,7 +4,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import engine.model.*
+import kotlinx.coroutines.launch
 import moe.tlaster.precompose.viewmodel.ViewModel
+import moe.tlaster.precompose.viewmodel.viewModelScope
 
 
 enum class UiSelection() {
@@ -15,6 +17,23 @@ class MainViewModel : ViewModel() {
     val timelineModel = TimelineModel()
     val playerModel = PlayerModel()
     val sourcesModel = SourcesModel()
+
+    init {
+        viewModelScope.launch {
+            snapshotFlow { timelineModel.segments.toList() }
+                .collect { currentSegments ->
+                    // Update history whenever segments change
+                    if (currentSegments != timelineModel.history.currentSnapshot.segments) {
+                        timelineModel.history.addRecord(
+                            currentSegments,
+                            timelineModel.currentSegmentIndex,
+                            playerModel.progressState.value.time
+                        )
+                        println("New history ${timelineModel.history}")
+                    }
+                }
+        }
+    }
 
     var recomposeTrigger by mutableStateOf(false)
 

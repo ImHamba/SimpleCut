@@ -1,11 +1,14 @@
 package engine.model
 
-import androidx.compose.runtime.*
-import java.lang.IllegalArgumentException
-import java.lang.IndexOutOfBoundsException
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 class TimelineModel {
     var segments = mutableStateListOf<TimelineSegment>()
+    var history = TimelineHistory()
+
     var currentSegmentIndex by mutableStateOf(0)
     var selectedSegmentIndex: Int? by mutableStateOf(null)
 
