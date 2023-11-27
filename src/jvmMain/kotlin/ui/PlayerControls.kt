@@ -62,11 +62,7 @@ fun PlayerControls(modifier: Modifier = Modifier) {
         ControlButton(
             Modifier.size(50.dp),
             onClick = {
-                val selected = viewModel.timelineModel.selectedSegmentIndex
-                if (selected != null) {
-                    viewModel.timelineModel.deleteSegment(selected)
-                    viewModel.timelineModel.selectedSegmentIndex = null
-                }
+
 
             },
             enabled = viewModel.timelineModel.selectedSegmentIndex != null,

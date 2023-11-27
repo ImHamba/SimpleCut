@@ -17,7 +17,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Triangle(modifier: Modifier = Modifier, color: Color) {
+fun PlayheadTop(modifier: Modifier = Modifier, color: Color) {
     var height by remember { mutableStateOf(0f) }
     var width by remember { mutableStateOf(0f) }
     Canvas(
@@ -29,7 +29,9 @@ fun Triangle(modifier: Modifier = Modifier, color: Color) {
             val trianglePath = Path().apply {
                 moveTo(0f, 0f)
                 lineTo(width, 0f)
+                lineTo(width, height * 2 / 3)
                 lineTo(width / 2, height)
+                lineTo(0f, height * 2 / 3)
             }
             drawPath(color = color, path = trianglePath)
         })

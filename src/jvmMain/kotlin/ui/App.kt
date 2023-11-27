@@ -108,7 +108,7 @@ fun MainPanel() {
         }
 
         // all player controls - timeline, buttons etc
-        Row(Modifier.height(120.dp).then(panelStyle(top = 5.dp))) {
+        Row(Modifier.height(140.dp).then(panelStyle(top = 5.dp))) {
             TimeDisplay(Modifier.align(Alignment.CenterVertically))
             Timeline()
         }

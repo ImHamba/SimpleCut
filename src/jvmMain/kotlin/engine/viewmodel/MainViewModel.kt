@@ -122,11 +122,7 @@ class MainViewModel : ViewModel() {
     fun deleteUiSelection() {
         when (lastSelectType) {
             UiSelection.SEGMENT -> {
-                // delete selected segment if its not null
-                timelineModel.selectedSegmentIndex?.let {
-                    timelineModel.deleteSegment(it)
-                    timelineModel.selectedSegmentIndex = null
-                }
+                deleteSelectedSegment()
             }
 
             UiSelection.SOURCE -> {
@@ -140,6 +136,14 @@ class MainViewModel : ViewModel() {
             null -> {
                 // do nothing
             }
+        }
+    }
+
+    fun deleteSelectedSegment() {
+        // delete selected segment if its not null
+        timelineModel.selectedSegmentIndex?.let {
+            timelineModel.deleteSegment(it)
+            timelineModel.selectedSegmentIndex = null
         }
     }
 }

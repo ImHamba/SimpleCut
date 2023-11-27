@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,7 @@ fun Timeline() {
     // temporary position used while actively dragging slider
     var tempSliderPos by remember { mutableStateOf(0f) }
     var sliderEnabled by remember { mutableStateOf(false) }
-    val rulerHeight = 20.dp
+    val rulerHeight = 25.dp
 
     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
         Slider(
@@ -68,7 +69,7 @@ fun Timeline() {
                 viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
                 tempSliderPos = 0f
             },
-            thumb = { Playhead() },
+            thumb = { Playhead(rulerHeight) },
             track = {
                 Track(
                     Modifier.pointerInput(Unit) {
@@ -99,25 +100,29 @@ fun Timeline() {
 }
 
 @Composable
-private fun Playhead() {
-    BoxWithConstraints(
+private fun Playhead(timeRulerHeight: Dp) {
+    var height: Int by remember { mutableStateOf(0) }
+    Column(
         Modifier
             .width(20.dp)
             .fillMaxHeight()
             .graphicsLayer(clip = false)
+            .onGloballyPositioned { height = it.size.height }
     ) {
-        Triangle(
+        PlayheadTop(
             Modifier
-                .align(Alignment.TopCenter)
-                .height(5.dp)
-                .width(10.dp),
+                .align(Alignment.CenterHorizontally)
+                .offset(y = timeRulerHeight - 12.dp)
+                .height(12.dp)
+                .width(9.dp),
             color = Color.Red
         )
+        Spacer(Modifier.weight(1f))
         Spacer(
             Modifier
                 .width(1.dp)
-                .height(maxHeight * 2)
-                .align(Alignment.BottomCenter)
+                .height(with(LocalDensity.current) { height.toDp() - 20.dp })
+                .align(Alignment.CenterHorizontally)
                 .background(Color.Red)
         )
     }
@@ -203,11 +208,15 @@ private fun TimeRuler(modifier: Modifier = Modifier, duration: Float) {
                         Text(
                             formatTime(i * markingTime),
                             fontSize = 10.sp,
-                            modifier = Modifier.weight(2f).padding(start = 3.dp)
+                            modifier = Modifier.padding(start = 3.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Clip
                         )
 
+                        Spacer(Modifier.weight(1f))
+
                         // lines/spacers for minor markings in between main markings
-                        Row(Modifier.weight(1f)) {
+                        Row(Modifier.height(7.dp)) {
                             val numSmallMarkings = weight / 0.2f
                             val numWholeSmallMarkings = numSmallMarkings.toInt()
                             for (j in 0 until numWholeSmallMarkings) {
@@ -231,7 +240,7 @@ private fun TimeRuler(modifier: Modifier = Modifier, duration: Float) {
             }
 
             // line at far right of time ruler
-            VerticalDivider()
+            if (duration > 0) VerticalDivider()
         }
     }
 }

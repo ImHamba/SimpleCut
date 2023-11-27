@@ -21,14 +21,22 @@ fun FrameWindowScope.FilledMenuBar() {
     MenuBar {
         Menu("File") {
             Item("Import Videos", onClick = { viewModel.sourcesModel.addSources(openFileDialog()) })
-            Item("Export", onClick = {
+            Item("Export to video", onClick = {
                 handleExport(viewModel.timelineModel.segments.toList(), viewModel.viewModelScope)
             })
         }
 
         Menu("Edit") {
-            Item("Split Segment", onClick = { viewModel.splitCurrentSegment() })
-            Item("Delete Segment", onClick = { })
+            Item(
+                "Split segment",
+                onClick = { viewModel.splitCurrentSegment() },
+                enabled = viewModel.timelineModel.segments.size > 0
+            )
+            Item(
+                "Delete selected segment",
+                onClick = { viewModel.deleteSelectedSegment() },
+                enabled = viewModel.timelineModel.selectedSegmentIndex != null
+            )
         }
 
         Menu("Help") {
