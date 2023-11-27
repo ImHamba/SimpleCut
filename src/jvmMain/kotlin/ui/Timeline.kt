@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,29 +26,12 @@ import androidx.compose.ui.unit.sp
 import engine.model.TimelineSegment
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
-import util.Triangle
-import util.VerticalDivider
-import util.detectDownClickUncomsumed
-import kotlin.math.floor
+import util.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun Timeline() {
     val viewModel = viewModel() { MainViewModel() }
-
-//    // set up history tracking when segments update
-//    val TLSegments = viewModel.timelineModel.segments.toList()
-//    LaunchedEffect(TLSegments) {
-//        println("segments change detected")
-//        println("TL segments: ${viewModel.timelineModel.segments}")
-//        println("Lastest history segments: ${viewModel.timelineModel.history.currentSnapshot.segments}")
-//        if (TLSegments != viewModel.timelineModel.history.currentSnapshot.segments) {
-//            println("segments different to latest in history")
-//            viewModel.timelineModel.history.addRecord(viewModel.timelineModel.segments)
-//
-//            println("new ${viewModel.timelineModel.history}")
-//        }
-//    }
 
     val tlDuration = viewModel.timelineModel.getDuration()
 
@@ -67,7 +50,7 @@ fun Timeline() {
     // temporary position used while actively dragging slider
     var tempSliderPos by remember { mutableStateOf(0f) }
     var sliderEnabled by remember { mutableStateOf(false) }
-    val rulerHeight = 13.dp
+    val rulerHeight = 20.dp
 
     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
         Slider(
@@ -144,7 +127,7 @@ private fun Playhead() {
 private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
     val viewModel = viewModel() { MainViewModel() }
     Column(modifier.fillMaxSize()) {
-        TimeRuler(rulerHeight, viewModel.timelineModel.getDuration())
+        TimeRuler(Modifier.height(rulerHeight), viewModel.timelineModel.getDuration())
 
         Spacer(Modifier.height(2.dp))
 
@@ -179,27 +162,71 @@ private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
 }
 
 @Composable
-private fun TimeRuler(rulerHeight: Dp, duration: Float) {
-    Row(Modifier.height(rulerHeight)) {
-        VerticalDivider()
+private fun TimeRuler(modifier: Modifier = Modifier, duration: Float) {
+    val approxMarkingSpacing = 200.dp
 
-        val wholeSec = floor(duration).toInt()
-        // add a section for each second
-        for (i in 0 until wholeSec) {
-            Row(Modifier.weight(1f)) {
-                Text(i.toString(), fontSize = 10.sp)
-                Spacer(Modifier.weight(1f))
-                VerticalDivider()
-            }
-        }
+    // possible marking spacings in terms of seconds
+    val validMarkingTimes =
+        listOf(0.1f, 0.2f, 0.5f, 1f, 2f, 3f, 5f, 10f, 15f, 30f, 45f, 60f, 2 * 60f, 3 * 60f, 5 * 60f, 10 * 60f)
 
-        val remainder = duration - wholeSec
-        if (remainder > 0) {
-            Row(Modifier.weight(remainder)) {
-                Text((wholeSec).toString(), fontSize = 10.sp)
-                Spacer(Modifier.weight(1f))
-                VerticalDivider()
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        // determine a nicely spaced number of markings and the corresponding time per marking
+        val approxNumMarkings = maxWidth / approxMarkingSpacing
+        val approxMarkingTime = duration / approxNumMarkings
+        val markingTime = validMarkingTimes.closest(approxMarkingTime)
+        val numMarkings = duration / markingTime
+
+        val wholeMarkings = numMarkings.toInt()
+
+        Row {
+
+            // add a section for each time marking
+            for (i in 0..wholeMarkings) {
+                // determine length of section - evenly spaced up until the last section
+                val weight: Float
+                if (i < wholeMarkings) {
+                    weight = 1f
+                } else {
+                    val remainder = numMarkings - wholeMarkings
+                    if (remainder > 0)
+                        weight = remainder
+
+                    // if there is no remainder, skip this last section
+                    else
+                        break
+                }
+
+                Row(Modifier.weight(weight)) {
+                    VerticalDivider()
+                    Column {
+                        Row(Modifier.weight(2f)) {
+                            Text(
+                                formatTime(i * markingTime),
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(start = 3.dp)
+                            )
+                        }
+                        Row(Modifier.weight(1f)) {
+                            val numSmallMarkings = weight / 0.2f
+                            val numWholeSmallMarkings = numSmallMarkings.toInt()
+                            for (j in 0 until numWholeSmallMarkings) {
+                                Spacer(Modifier.weight(1f))
+
+                                if (j < 4)
+                                    VerticalDivider()
+                            }
+
+                            val smallRemainder = numSmallMarkings - (numWholeSmallMarkings)
+                            if (smallRemainder > 0)
+                                Spacer(Modifier.weight(smallRemainder))
+                        }
+                    }
+
+                }
+
             }
+
+            VerticalDivider()
         }
     }
 }

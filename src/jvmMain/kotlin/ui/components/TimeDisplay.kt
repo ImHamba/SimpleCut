@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
+import util.formatTime
 import java.text.DecimalFormat
 
 @Composable
@@ -28,8 +29,5 @@ fun TimeDisplay(modifier: Modifier = Modifier) {
     displayTime = displayTime.coerceIn(0f, viewModel.timelineModel.getDuration())
 
     // format time nicely
-    val minutes = displayTime.toInt() / 60
-    val formattedMins = DecimalFormat("00").format(minutes)
-    val formattedSeconds = DecimalFormat("00.00").format(displayTime % 60)
-    Text(text = "$formattedMins:$formattedSeconds", modifier = modifier)
+    Text(text = formatTime(displayTime), modifier = modifier)
 }

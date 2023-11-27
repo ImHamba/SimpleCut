@@ -2,6 +2,7 @@ package util
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.material.Text
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputScope
 import java.awt.FileDialog
@@ -10,7 +11,9 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.text.DecimalFormat
 import kotlin.io.path.absolutePathString
+import kotlin.math.abs
 
 
 // detects a downclick without consuming the event
@@ -41,4 +44,14 @@ fun uriToAbsolutePath(fileUri: String): String {
 
     // Convert the URI to a regular file path
     return path.absolutePathString()
+}
+
+// taken from https://stackoverflow.com/a/59898110
+fun List<Float>.closest(value: Float) = minBy { abs(value - it) }
+
+fun formatTime(seconds: Float): String {
+    val minutes = seconds.toInt() / 60
+    val formattedMins = DecimalFormat("00").format(minutes)
+    val formattedSeconds = DecimalFormat("00.00").format(seconds % 60)
+    return "$formattedMins:$formattedSeconds"
 }
