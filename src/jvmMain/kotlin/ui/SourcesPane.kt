@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
@@ -67,11 +72,20 @@ fun SourcesPane(colWidth: Dp, spacing: Dp) {
 
         // show text instruction if the sources panel is empty
         if (viewModel.sourcesModel.sources.size == 0) {
-            Text(
-                text = "Drop video files here or click to import",
-                modifier = Modifier.align(Alignment.Center).padding(10.dp),
-                textAlign = TextAlign.Center
-            )
+            Column(
+                modifier = Modifier.align(Alignment.Center).padding(10.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    imageVector = Icons.Default.Download,
+                    contentDescription = null
+                )
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "Drop video files here or click to import",
+                    textAlign = TextAlign.Center
+                )
+            }
         } else {
             // show grid of imported sources
             LazyVerticalGrid(
@@ -111,11 +125,20 @@ fun SourcesPane(colWidth: Dp, spacing: Dp) {
                         )
                     }.padding(10.dp),
             ) {
-                Text(
-                    text = "Drop Files Here to Import",
-                    modifier = Modifier.align(Alignment.Center),
-                    textAlign = TextAlign.Center
-                )
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(10.dp)
+                ) {
+                    Icon(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        imageVector = Icons.Default.Download,
+                        contentDescription = null
+                    )
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        text = "Drop video files here to import",
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
     }
 }

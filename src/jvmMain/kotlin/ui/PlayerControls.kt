@@ -1,52 +1,66 @@
 package ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
-import ui.components.PauseButton
-import ui.components.TimeDisplay
+import moe.tlaster.precompose.viewmodel.viewModelScope
+import ui.components.ControlButton
+import ui.components.openSaveDialog
 import util.exportVideoOutput
+import util.handleExport
+import util.rememberArrowTopRight
 
 @Composable
 fun PlayerControls(modifier: Modifier = Modifier) {
     val viewModel = viewModel() { MainViewModel() }
     // player and trimming controls
     Row(
-        modifier.fillMaxWidth()
-            .height(50.dp),
+        modifier.fillMaxWidth(),//.height(50.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Button(
-            onClick = {
-                viewModel.timelineModel.moveToSegment(0)
-                viewModel.triggerRecompose()
-            },
-            enabled = viewModel.timelineModel.segments.size > 0
+        // split timeline button
+        ControlButton(
+            Modifier.size(50.dp),
+            onClick = { viewModel.splitCurrentSegment() },
+            enabled = viewModel.timelineModel.segments.size > 0,
+            toolTipText = "Split timeline"
         )
         {
-            Text("Restart")
+            Icon(
+                imageVector = Icons.Default.ContentCut,
+                contentDescription = null
+            )
         }
 
-        PauseButton(viewModel.playerModel.isPaused)
-
-        Button(
-            onClick = {
-                viewModel.splitCurrentSegment()
-            },
-            enabled = viewModel.timelineModel.segments.size > 0
+        // play/pause button
+        ControlButton(
+            Modifier.size(50.dp),
+            onClick = { viewModel.togglePlayerPause() },
+            enabled = viewModel.timelineModel.segments.size > 0,
+            toolTipText = "Play/pause"
         )
         {
-            Text("Cut")
+            Icon(
+                imageVector = if (viewModel.playerModel.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                contentDescription = null
+            )
         }
 
-        Button(
+
+        // delete segment button
+        ControlButton(
+            Modifier.size(50.dp),
             onClick = {
                 val selected = viewModel.timelineModel.selectedSegmentIndex
                 if (selected != null) {
@@ -55,26 +69,30 @@ fun PlayerControls(modifier: Modifier = Modifier) {
                 }
 
             },
-            enabled = viewModel.timelineModel.selectedSegmentIndex != null
+            enabled = viewModel.timelineModel.selectedSegmentIndex != null,
+            toolTipText = "Delete selected segment"
         )
         {
-            Text("Delete")
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = null
+            )
         }
 
-        Button(
+        // export button
+        ControlButton(
+            Modifier.size(50.dp),
             onClick = {
-                val outputPath = "C:\\Users\\DR\\Downloads\\Untitled.mp4"//openSaveDialog()
-                try {
-                    outputPath?.let {
-                        exportVideoOutput(viewModel.timelineModel.segments.toList(), it)
-                    }
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                }
-            }
+                handleExport(viewModel.timelineModel.segments.toList(), viewModel.viewModelScope)
+            },
+            enabled = viewModel.timelineModel.segments.size > 0,
+            toolTipText = "Export to video"
         )
         {
-            Text("Export")
+            Icon(
+                imageVector = Icons.Default.DoubleArrow,
+                contentDescription = null
+            )
         }
 
     }

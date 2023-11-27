@@ -42,6 +42,8 @@ kotlin {
 
                 implementation("org.jetbrains.compose.components:components-splitpane-desktop:1.5.10")
 
+                implementation(compose.materialIconsExtended)
+
             }
         }
 

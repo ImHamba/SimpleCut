@@ -5,9 +5,11 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
+import moe.tlaster.precompose.viewmodel.viewModelScope
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import util.exportVideoOutput
+import util.handleExport
 import javax.swing.UIManager
 
 @Composable
@@ -20,10 +22,7 @@ fun FrameWindowScope.FilledMenuBar() {
         Menu("File") {
             Item("Import Videos", onClick = { viewModel.sourcesModel.addSources(openFileDialog()) })
             Item("Export", onClick = {
-                val outputPath = "C:\\Users\\DR\\Downloads\\Untitled.mp4"//openSaveDialog()
-                outputPath?.let {
-                    exportVideoOutput(viewModel.timelineModel.segments.toList(), it)
-                }
+                handleExport(viewModel.timelineModel.segments.toList(), viewModel.viewModelScope)
             })
         }
 

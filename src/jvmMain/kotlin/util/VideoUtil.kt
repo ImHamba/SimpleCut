@@ -3,13 +3,14 @@ package util
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import engine.model.TimelineSegment
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.bytedeco.ffmpeg.ffmpeg
-import org.bytedeco.ffmpeg.global.avutil.AV_LOG_TRACE
 import org.bytedeco.ffmpeg.global.avutil.AV_LOG_WARNING
 import org.bytedeco.javacpp.Loader
-import org.bytedeco.javacv.*
+import org.bytedeco.javacv.FFmpegFrameFilter
+import org.bytedeco.javacv.FFmpegFrameGrabber
+import org.bytedeco.javacv.FFmpegLogCallback
+import org.bytedeco.javacv.Java2DFrameConverter
 import java.awt.image.BufferedImage
 import java.io.File
 import kotlin.math.roundToLong
@@ -69,36 +70,34 @@ fun getVideoDuration(videoUrl: String): Float {
     return duration
 }
 
-fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String) {
+suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String) {
     FFmpegLogCallback.set()
     FFmpegLogCallback.setLevel(AV_LOG_WARNING)
 
-    GlobalScope.launch {
-
+    withContext(Dispatchers.IO) {
+        // create a grabber for each segment and start them
         val grabbers = segments.map {
             FFmpegFrameGrabber(it.videoUrl).apply {
                 start()
             }
         }
 
-        grabbers.forEach {
-            println(
-                "ac: ${it.audioCodec}\nvc: ${it.videoCodec}\nrot: ${it.displayRotation}\n" +
-                        "sample: ${it.sampleRate}\nwidth: ${it.imageWidth}\nheight: ${it.imageHeight}\nframerate: ${it.frameRate}"
-            )
-        }
+//        grabbers.forEach {
+//            println(
+//                "ac: ${it.audioCodec}\nvc: ${it.videoCodec}\nrot: ${it.displayRotation}\n" +
+//                        "sample: ${it.sampleRate}\nwidth: ${it.imageWidth}\nheight: ${it.imageHeight}\nframerate: ${it.frameRate}"
+//            )
+//        }
 
         // check if video properties align to allow simple concat muxer
         val simpleConcatPossible = grabbers.all {
             it.audioCodec == grabbers[0].audioCodec
                     && it.videoCodec == grabbers[0].videoCodec
-//                && it.displayRotation == grabbers[0].displayRotation
                     && it.sampleRate == grabbers[0].sampleRate
                     && it.imageWidth == grabbers[0].imageWidth
                     && it.imageHeight == grabbers[0].imageHeight
                     && it.frameRate in (0.995 * grabbers[0].frameRate..1.005 * grabbers[0].frameRate)
         }
-
 
         val ffmpeg: String = Loader.load(ffmpeg::class.java)
 
@@ -132,46 +131,8 @@ fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String) {
                 "-map", "\"[v]\"", "-map", "\"[a]\"", outputPath
             )
 
-
-            pb.inheritIO().start().waitFor()
+            pb.inheritIO().start()
         }
+
     }
-
-    // generate frame grabbers from each segment
-//    val grabbers = segments.map {
-//        FFmpegFrameGrabber(it.videoUrl).apply {
-//            start()
-//        }
-//    }
-//
-//    val width = grabbers[0].imageWidth
-//    val height = grabbers[0].imageHeight
-//
-//    val outputFile = File(outputPath)
-//    val recorder = FFmpegFrameRecorder(outputFile, width, height, 1)
-//    println(grabbers[0].formatContext)
-//    recorder.videoCodec = avcodec.AV_CODEC_ID_MPEG4
-//    recorder.format = "mp4"
-//    recorder.frameRate = grabbers[0].videoFrameRate
-//    recorder.videoBitrate = grabbers[0].videoBitrate
-
-//    recorder.start(grabbers[0].formatContext)
-//
-//    // iterate through grabbers
-//    grabbers.forEach {
-//        // use grabber with auto closing
-//        it.use { grabber ->
-//
-//            while (true) {
-//                // grab frame and record it or break loop if it is null
-//                val frame = grabber.grabFrame() ?: break
-//                if (frame.image != null) recorder.record(frame)
-//            }
-//
-//            grabber.stop()
-//        }
-//    }
-//
-//    recorder.stop()
-
 }

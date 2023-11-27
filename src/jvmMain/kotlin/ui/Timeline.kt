@@ -152,7 +152,6 @@ private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
                     segment.videoUrl.substringAfterLast('\\'),
                     segment,
                     index == viewModel.timelineModel.selectedSegmentIndex,
-                    index == viewModel.timelineModel.currentSegmentIndex,
                     5.dp
                 )
             }
@@ -197,25 +196,30 @@ private fun TimeRuler(modifier: Modifier = Modifier, duration: Float) {
                 }
 
                 Row(Modifier.weight(weight)) {
+                    // left most main time marking
                     VerticalDivider()
                     Column {
-                        Row(Modifier.weight(2f)) {
-                            Text(
-                                formatTime(i * markingTime),
-                                fontSize = 10.sp,
-                                modifier = Modifier.padding(start = 3.dp)
-                            )
-                        }
+                        // time marking text
+                        Text(
+                            formatTime(i * markingTime),
+                            fontSize = 10.sp,
+                            modifier = Modifier.weight(2f).padding(start = 3.dp)
+                        )
+
+                        // lines/spacers for minor markings in between main markings
                         Row(Modifier.weight(1f)) {
                             val numSmallMarkings = weight / 0.2f
                             val numWholeSmallMarkings = numSmallMarkings.toInt()
                             for (j in 0 until numWholeSmallMarkings) {
                                 Spacer(Modifier.weight(1f))
 
+                                // dont display marking at end of last segment
                                 if (j < 4)
                                     VerticalDivider()
                             }
 
+                            // if there is a partial minor spacing left, set its weight manually proportional
+                            // to the remaining length left to fill
                             val smallRemainder = numSmallMarkings - (numWholeSmallMarkings)
                             if (smallRemainder > 0)
                                 Spacer(Modifier.weight(smallRemainder))
@@ -226,6 +230,7 @@ private fun TimeRuler(modifier: Modifier = Modifier, duration: Float) {
 
             }
 
+            // line at far right of time ruler
             VerticalDivider()
         }
     }
@@ -235,10 +240,8 @@ private fun TimeRuler(modifier: Modifier = Modifier, duration: Float) {
 private fun RowScope.TimelineSegment(
     widthFrac: Float,
     label: String,
-//    image: ImageBitmap?,
     segment: TimelineSegment,
     isSelected: Boolean,
-    isCurrent: Boolean,
     cornerRadius: Dp
 ) {
     Column(

@@ -83,7 +83,7 @@ fun MainPanel() {
                             recomposeTrigger = viewModel.recomposeTrigger
                         )
 
-                        PlayerControls(Modifier.height(50.dp))
+                        PlayerControls(Modifier.padding(5.dp).height(50.dp))
 
                     }
                 }
@@ -147,7 +147,7 @@ private fun keypressHandler(): Modifier {
             // clear out segments and replace with the appropriate record from history
             segments.clear()
             segments.addAll(if (it.key == Key.Z) history.undo() else history.redo())
-            
+
             if (segments.size > 0) {
                 viewModel.timelineModel.moveToSegment(history.currentSnapshot.currentSegmentIndex)
                 viewModel.timelineModel.seekedTime = history.currentSnapshot.currentSegmentTime

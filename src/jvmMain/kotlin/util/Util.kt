@@ -5,6 +5,11 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.material.Text
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputScope
+import engine.model.TimelineSegment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import ui.components.openSaveDialog
+import java.awt.Desktop
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -54,4 +59,19 @@ fun formatTime(seconds: Float): String {
     val formattedMins = DecimalFormat("00").format(minutes)
     val formattedSeconds = DecimalFormat("00.00").format(seconds % 60)
     return "$formattedMins:$formattedSeconds"
+}
+
+fun handleExport(segments: List<TimelineSegment>, scope: CoroutineScope) {
+    val outputPath = openSaveDialog()
+
+    // run video export in a coroutine
+    scope.launch {
+
+        outputPath?.let {
+            exportVideoOutput(segments, it)
+
+            // open location of saved file after export
+            Desktop.getDesktop().open(File(outputPath).parentFile)
+        }
+    }
 }
