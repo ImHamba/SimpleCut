@@ -19,7 +19,7 @@ import engine.model.VideoSource
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
 import ui.components.SourceIcon
-import ui.components.openFilePicker
+import ui.components.openFileDialog
 import util.StackLeft
 import util.uriToAbsolutePath
 
@@ -42,7 +42,7 @@ fun SourcesPane(colWidth: Dp, spacing: Dp) {
 
                 // open file import picker
                 if (viewModel.sourcesModel.sources.size == 0)
-                    viewModel.sourcesModel.addSources(openFilePicker())
+                    viewModel.sourcesModel.addSources(openFileDialog())
             }
             .onExternalDrag(
                 onDrop = { dragValue ->

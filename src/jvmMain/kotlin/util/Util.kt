@@ -12,15 +12,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
-fun openFileDialog(
-    title: String,
-    allowMultiSelection: Boolean = true
-): Set<File> {
-    return FileDialog(null as Frame?, title, FileDialog.LOAD).apply {
-        isMultipleMode = allowMultiSelection
-        isVisible = true
-    }.files.toSet()
-}
 
 // detects a downclick without consuming the event
 // adapted from https://proandroiddev.com/android-touch-system-part-5-how-gestures-work-in-jetpack-compose-ef7e74703b6a

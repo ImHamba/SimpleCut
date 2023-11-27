@@ -2,11 +2,18 @@ package util
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import org.bytedeco.javacv.FFmpegFrameFilter
-import org.bytedeco.javacv.FFmpegFrameGrabber
-import org.bytedeco.javacv.Java2DFrameConverter
+import engine.model.TimelineSegment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.bytedeco.ffmpeg.ffmpeg
+import org.bytedeco.ffmpeg.global.avutil.AV_LOG_TRACE
+import org.bytedeco.ffmpeg.global.avutil.AV_LOG_WARNING
+import org.bytedeco.javacpp.Loader
+import org.bytedeco.javacv.*
 import java.awt.image.BufferedImage
+import java.io.File
 import kotlin.math.roundToLong
+
 
 data class Progress(val fraction: Float, val time: Float)
 
@@ -60,4 +67,111 @@ fun getVideoDuration(videoUrl: String): Float {
         grabber.stop()
     }
     return duration
+}
+
+fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String) {
+    FFmpegLogCallback.set()
+    FFmpegLogCallback.setLevel(AV_LOG_WARNING)
+
+    GlobalScope.launch {
+
+        val grabbers = segments.map {
+            FFmpegFrameGrabber(it.videoUrl).apply {
+                start()
+            }
+        }
+
+        grabbers.forEach {
+            println(
+                "ac: ${it.audioCodec}\nvc: ${it.videoCodec}\nrot: ${it.displayRotation}\n" +
+                        "sample: ${it.sampleRate}\nwidth: ${it.imageWidth}\nheight: ${it.imageHeight}\nframerate: ${it.frameRate}"
+            )
+        }
+
+        // check if video properties align to allow simple concat muxer
+        val simpleConcatPossible = grabbers.all {
+            it.audioCodec == grabbers[0].audioCodec
+                    && it.videoCodec == grabbers[0].videoCodec
+//                && it.displayRotation == grabbers[0].displayRotation
+                    && it.sampleRate == grabbers[0].sampleRate
+                    && it.imageWidth == grabbers[0].imageWidth
+                    && it.imageHeight == grabbers[0].imageHeight
+                    && it.frameRate in (0.995 * grabbers[0].frameRate..1.005 * grabbers[0].frameRate)
+        }
+
+
+        val ffmpeg: String = Loader.load(ffmpeg::class.java)
+
+        val pb: ProcessBuilder
+        if (simpleConcatPossible) {
+            println("Simple concat")
+
+            val concatString = segments.map { segment ->
+                "file '${segment.videoUrl}'\ninpoint ${segment.startTime}\noutpoint ${segment.endTime}"
+            }.joinToString("\n")
+
+            val concatTxtPath = "temp/concat.txt"
+            val concatTxtFile = File(concatTxtPath)
+            concatTxtFile.writeText(concatString)
+
+            pb = ProcessBuilder(
+                ffmpeg, "-y", "-f", "concat", "-safe", "0",
+                "-i", concatTxtFile.absolutePath,
+                "-c", "copy", outputPath
+            )
+
+            pb.inheritIO().start().waitFor()
+            concatTxtFile.delete()
+
+        } else {
+            println("filter_complex")
+
+            pb = ProcessBuilder(
+                ffmpeg, "-y", "-i", segments[0].videoUrl, "-i", segments[1].videoUrl,
+                "-filter_complex", "\"[0:v] [0:a] [1:v] [1:a]concat=n=2:v=1:a=1 [v] [a]\"",
+                "-map", "\"[v]\"", "-map", "\"[a]\"", outputPath
+            )
+
+
+            pb.inheritIO().start().waitFor()
+        }
+    }
+
+    // generate frame grabbers from each segment
+//    val grabbers = segments.map {
+//        FFmpegFrameGrabber(it.videoUrl).apply {
+//            start()
+//        }
+//    }
+//
+//    val width = grabbers[0].imageWidth
+//    val height = grabbers[0].imageHeight
+//
+//    val outputFile = File(outputPath)
+//    val recorder = FFmpegFrameRecorder(outputFile, width, height, 1)
+//    println(grabbers[0].formatContext)
+//    recorder.videoCodec = avcodec.AV_CODEC_ID_MPEG4
+//    recorder.format = "mp4"
+//    recorder.frameRate = grabbers[0].videoFrameRate
+//    recorder.videoBitrate = grabbers[0].videoBitrate
+
+//    recorder.start(grabbers[0].formatContext)
+//
+//    // iterate through grabbers
+//    grabbers.forEach {
+//        // use grabber with auto closing
+//        it.use { grabber ->
+//
+//            while (true) {
+//                // grab frame and record it or break loop if it is null
+//                val frame = grabber.grabFrame() ?: break
+//                if (frame.image != null) recorder.record(frame)
+//            }
+//
+//            grabber.stop()
+//        }
+//    }
+//
+//    recorder.stop()
+
 }

@@ -11,6 +11,7 @@ import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
 import ui.components.PauseButton
 import ui.components.TimeDisplay
+import util.exportVideoOutput
 
 @Composable
 fun PlayerControls(modifier: Modifier = Modifier) {
@@ -58,6 +59,22 @@ fun PlayerControls(modifier: Modifier = Modifier) {
         )
         {
             Text("Delete")
+        }
+
+        Button(
+            onClick = {
+                val outputPath = "C:\\Users\\DR\\Downloads\\Untitled.mp4"//openSaveDialog()
+                try {
+                    outputPath?.let {
+                        exportVideoOutput(viewModel.timelineModel.segments.toList(), it)
+                    }
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
+        )
+        {
+            Text("Export")
         }
 
     }

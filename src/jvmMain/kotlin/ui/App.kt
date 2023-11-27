@@ -139,33 +139,17 @@ private fun keypressHandler(): Modifier {
         if (it.key == Key.Escape && it.type == KeyEventType.KeyDown)
             viewModel.timelineModel.selectedSegmentIndex = null
 
-        // undo changes to timeline on ctrl z
-        if (it.isCtrlPressed && it.key == Key.Z && it.type == KeyEventType.KeyDown) {
+        // undo changes to timeline on ctrl z and redo on ctrl y
+        if (it.isCtrlPressed && (it.key == Key.Z || it.key == Key.Y) && it.type == KeyEventType.KeyDown) {
             val segments = viewModel.timelineModel.segments
             val history = viewModel.timelineModel.history
 
+            // clear out segments and replace with the appropriate record from history
             segments.clear()
-            segments.addAll(history.undo())
+            segments.addAll(if (it.key == Key.Z) history.undo() else history.redo())
+            
             if (segments.size > 0) {
                 viewModel.timelineModel.moveToSegment(history.currentSnapshot.currentSegmentIndex)
-
-                println(history.currentSnapshot.currentSegmentTime)
-                viewModel.timelineModel.seekedTime = history.currentSnapshot.currentSegmentTime
-            }
-        }
-
-        // redo changes to timeline on ctrl z
-        if (it.isCtrlPressed && it.key == Key.Y && it.type == KeyEventType.KeyDown) {
-            val segments = viewModel.timelineModel.segments
-            val history = viewModel.timelineModel.history
-
-            segments.clear()
-            segments.addAll(history.redo())
-
-            if (segments.size > 0) {
-                viewModel.timelineModel.moveToSegment(history.currentSnapshot.currentSegmentIndex)
-
-                println(history.currentSnapshot.currentSegmentTime)
                 viewModel.timelineModel.seekedTime = history.currentSnapshot.currentSegmentTime
             }
         }

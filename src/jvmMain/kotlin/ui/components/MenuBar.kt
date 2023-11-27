@@ -7,6 +7,7 @@ import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
+import util.exportVideoOutput
 import javax.swing.UIManager
 
 @Composable
@@ -17,8 +18,13 @@ fun FrameWindowScope.FilledMenuBar() {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
     MenuBar {
         Menu("File") {
-            Item("Import Videos", onClick = { viewModel.sourcesModel.addSources(openFilePicker()) })
-            Item("Export", onClick = {})
+            Item("Import Videos", onClick = { viewModel.sourcesModel.addSources(openFileDialog()) })
+            Item("Export", onClick = {
+                val outputPath = "C:\\Users\\DR\\Downloads\\Untitled.mp4"//openSaveDialog()
+                outputPath?.let {
+                    exportVideoOutput(viewModel.timelineModel.segments.toList(), it)
+                }
+            })
         }
 
         Menu("Edit") {
@@ -34,7 +40,7 @@ fun FrameWindowScope.FilledMenuBar() {
 
 // uses tinyfiledialogs to bring up file picker
 // adapted from https://github.com/Wavesonics/compose-multiplatform-file-picker/blob/master/mpfilepicker/src/jvmMain/kotlin/com/darkrockstudios/libraries/mpfilepicker/FileChooser.kt
-fun openFilePicker(
+fun openFileDialog(
     initialDirectory: String = System.getProperty("user.home"),
     fileExtension: String = ""
 ): Set<String> =
@@ -59,3 +65,15 @@ fun openFilePicker(
             ?: emptySet()
     }
 
+fun openSaveDialog(
+    initialDirectory: String = System.getProperty("user.home")
+): String? =
+    MemoryStack.stackPush().use { stack ->
+        // choose video output location
+        TinyFileDialogs.tinyfd_saveFileDialog(
+            "Export Video",
+            initialDirectory + "\\Untitled.mp4",
+            null,
+            ""
+        )
+    }
