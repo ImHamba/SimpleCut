@@ -32,8 +32,7 @@ internal fun VideoPlayerImpl(
     isFullscreen: Boolean,
     progressState: MutableState<Progress>,
     modifier: Modifier = Modifier,
-    onFinish: (() -> Unit)?,
-    recomposeTrigger: Boolean
+    onFinish: (() -> Unit)?
 ) {
 
     val viewModel = viewModel { MainViewModel() }
@@ -48,7 +47,7 @@ internal fun VideoPlayerImpl(
     /* OR the following code and using SwingPanel(factory = { factory }, ...) */
     // val factory by rememberUpdatedState(mediaPlayerComponent)
 
-    LaunchedEffect(url, recomposeTrigger) {
+    LaunchedEffect(url) {
         // if video is paused when url is changed, add a listener that will pause video immediately
         // using set-paused option only shows the video as a black screen initially until it is played again
         if (isPaused) {
@@ -107,7 +106,7 @@ private fun Float.toPercentage(): Int = (this * 100).roundToInt()
  */
 private fun initializeMediaPlayerComponent(): Component {
 //    System.setProperty("jna.library.path", "src/resources/vlc");
-    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), "src/resources/vlc")
+    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), "resources/vlc")
 //    NativeDiscovery().discover()
     return if (isMacOS()) {
         CallbackMediaPlayerComponent()

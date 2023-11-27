@@ -61,10 +61,7 @@ fun PlayerControls(modifier: Modifier = Modifier) {
         // delete segment button
         ControlButton(
             Modifier.size(50.dp),
-            onClick = {
-
-
-            },
+            onClick = { viewModel.deleteSelectedSegment() },
             enabled = viewModel.timelineModel.selectedSegmentIndex != null,
             toolTipText = "Delete selected segment"
         )

@@ -35,7 +35,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    var recomposeTrigger by mutableStateOf(false)
+//    var recomposeTrigger by mutableStateOf(false)
 
     // indicates the last type of ui element that was interacted with to determine what some keypresses do
     // e.g. whether delete deletes selected source or segment
@@ -64,13 +64,13 @@ class MainViewModel : ViewModel() {
 //        )
 //        timelineModel.moveToSegment(0)
 
-        sourcesModel.addSources(
-            setOf(
-                "D:\\My stuff\\Gym\\95kg squat.mp4",
-                "D:\\My stuff\\Gym\\135kg deadlift.mp4",
-                "D:\\My stuff\\Coding\\Java\\VideoCutter\\src\\resources\\video\\testvid.mp4"
-            )
-        )
+//        sourcesModel.addSources(
+//            setOf(
+//                "D:\\My stuff\\Gym\\95kg squat.mp4",
+//                "D:\\My stuff\\Gym\\135kg deadlift.mp4",
+//                "D:\\My stuff\\Coding\\Java\\VideoCutter\\src\\resources\\video\\testvid.mp4"
+//            )
+//        )
     }
 
     fun togglePlayerPause() {
@@ -80,10 +80,6 @@ class MainViewModel : ViewModel() {
         }
 
         playerModel.isPaused = !playerModel.isPaused
-    }
-
-    fun triggerRecompose() {
-        recomposeTrigger = !recomposeTrigger
     }
 
     fun splitCurrentSegment() {
