@@ -64,7 +64,7 @@ fun getVideoDuration(videoUrl: String): Float {
     val duration: Float
     FFmpegFrameGrabber(videoUrl).use { grabber ->
         grabber.start()
-        duration = (grabber.lengthInTime - 5) / 1000000f
+        duration = grabber.lengthInTime / 1000000f
         grabber.stop()
     }
     return duration

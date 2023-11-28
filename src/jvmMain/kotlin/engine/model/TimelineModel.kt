@@ -64,7 +64,7 @@ class TimelineModel {
 
     fun atEndOfTimeline(reportedPlayerTime: Float): Boolean {
 //        println("at last: ${atLastSegment()}, player $reportedPlayerTime, end: ${segments.last().endTime}")
-        return atLastSegment() && reportedPlayerTime >= segments.last().endTime
+        return atLastSegment() && reportedPlayerTime > segments.last().endTime
     }
 
     // adds a segment at a certain index and pushes the segment currently at that index, and everything after it,

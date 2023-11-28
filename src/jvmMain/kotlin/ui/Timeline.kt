@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
@@ -36,67 +35,86 @@ fun Timeline() {
 
     val tlDuration = viewModel.timelineModel.getDuration()
 
-    // clamp the player time to the start/end time of the current segment
-    val clampedTime = viewModel.playerModel.progressState.value.time.coerceIn(
-        viewModel.timelineModel.getCurrentSegment().startTime,
-        viewModel.timelineModel.getCurrentSegment().endTime
-    )
-
-    // slider position as a fraction of its length
-    val sliderPos by mutableStateOf(
-        if (viewModel.timelineModel.segments.size == 0) 0f
-        else (viewModel.timelineModel.playerTimeToTimelineTime(clampedTime) / viewModel.timelineModel.getDuration())
-    )
-
     // temporary position used while actively dragging slider
+    // this prevents many seeks being sent to the player until the slider is released at a final chosen time
     var tempSliderPos by remember { mutableStateOf(0f) }
+
+    // flag to enable or disable the slider based on where its being clicked, so clicks on the segments dont seek but
+    // clicks on the time ruler do
     var sliderEnabled by remember { mutableStateOf(false) }
+
     val rulerHeight = 25.dp
 
-    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-        Slider(
-            value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
-            onValueChange = {
-                if (!sliderEnabled) return@Slider
+    val playerTime = viewModel.playerModel.progressState.value.time
+    val seekedTime = viewModel.timelineModel.seekedTime
 
-                // update temporary position while dragging
-                tempSliderPos = it
-            },
-            onValueChangeFinished = {
-                if (!sliderEnabled) return@Slider
+    // if seeking just occurred, and the player time has now updated to the seeked time, then set justSeeked to false
+    var justSeeked by remember { mutableStateOf(false) }
+    if (playerTime in (0.995 * seekedTime)..(1.005 * seekedTime))
+        justSeeked = false
 
-                // once drag has completed, update the timeline model with the final value
-                viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
-                tempSliderPos = 0f
-            },
-            thumb = { Playhead(rulerHeight) },
-            track = {
-                Track(
-                    Modifier.pointerInput(Unit) {
-                        // disable slider and select correct segment based on where click occurred
-                        detectDownClickUncomsumed { offset ->
-                            sliderEnabled = offset.y < rulerHeight.toPx()
-                            if (!sliderEnabled) {
-                                val clickPosFrac = offset.x / size.width
+    // determine appropriate time to use for slider position
+    val sliderTime =
+        // slider stays at left side if no segments
+        if (viewModel.timelineModel.segments.size == 0) 0f
 
-                                // determine which segment was clicked on
-                                val clickedSegment =
-                                    viewModel.timelineModel.getSegmentIndexAtPositionFraction(clickPosFrac)
+        // if seeking just occurred, set slider to seeked time
+        // this prevents the slider snapping back to the old player time for a short time before the player has
+        // responded to the change in seeked time
+        else if (justSeeked) viewModel.timelineModel.seekedTime
 
-                                clickedSegment?.let {
-                                    viewModel.selectSegment(it)
-                                }
+        // otherwise use the player time by default
+        else playerTime
+
+    val sliderPos by mutableStateOf(viewModel.timelineModel.playerTimeToTimelineTime(sliderTime) / viewModel.timelineModel.getDuration())
+
+    Slider(
+        value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
+        onValueChange = {
+            // ignore value change if slider is disabled
+            if (!sliderEnabled) return@Slider
+
+            // update temporary position while dragging
+            tempSliderPos = it
+        },
+        onValueChangeFinished = {
+            // ignore value change if slider is disabled
+            if (!sliderEnabled) return@Slider
+
+            // once drag has completed, update the timeline model with the final value
+            viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
+            justSeeked = true
+            tempSliderPos = 0f
+        },
+        thumb = { Playhead(rulerHeight) },
+        track = {
+            Track(
+                Modifier.pointerInput(Unit) {
+                    // disable slider and select correct segment based on where click occurred
+                    // (only allow clicks on time ruler section of timeline)
+                    detectDownClickUncomsumed { offset ->
+                        sliderEnabled = offset.y < rulerHeight.toPx()
+                        if (!sliderEnabled) {
+                            val clickPosFrac = offset.x / size.width
+
+                            // determine which segment was clicked on
+                            val clickedSegment =
+                                viewModel.timelineModel.getSegmentIndexAtPositionFraction(clickPosFrac)
+
+                            clickedSegment?.let {
+                                viewModel.selectSegment(it)
                             }
                         }
-                    },
-                    rulerHeight
-                )
-            },
-            enabled = viewModel.timelineModel.segments.size > 0,
-            modifier = Modifier
-                .fillMaxHeight()
-        )
-    }
+                    }
+                },
+                rulerHeight
+            )
+        },
+        enabled = viewModel.timelineModel.segments.size > 0,
+        modifier = Modifier
+            .fillMaxHeight()
+    )
+
 }
 
 @Composable

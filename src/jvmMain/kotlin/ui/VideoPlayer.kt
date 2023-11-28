@@ -31,8 +31,7 @@ internal fun VideoPlayerImpl(
     seekTime: Float,
     isFullscreen: Boolean,
     progressState: MutableState<Progress>,
-    modifier: Modifier = Modifier,
-    onFinish: (() -> Unit)?
+    modifier: Modifier = Modifier
 ) {
 
     val viewModel = viewModel { MainViewModel() }
@@ -41,7 +40,22 @@ internal fun VideoPlayerImpl(
     val mediaPlayer = remember { mediaPlayerComponent.mediaPlayer() }
     mediaPlayer.emitProgressTo(progressState)
     mediaPlayer.checkTimelineProgress()
-    mediaPlayer.setupVideoFinishHandler(onFinish)
+    mediaPlayer.setupVideoFinishHandler {
+
+
+        if (viewModel.timelineModel.atLastSegment()) {
+            println("reached end of video file at last segment, restarting back to start")
+            viewModel.playerModel.isPaused = true
+            viewModel.timelineModel.moveToSegment(0)
+//            mediaPlayer.controls().play()
+
+//            viewModel.timelineModel.seekedTime = viewModel.timelineModel.getCurrentSegment().endTime
+        } else if (!viewModel.playerModel.isPaused) {
+            println("reached end of video file at intermediate segment, going to next segment")
+            viewModel.timelineModel.startNextSegment()
+        }
+
+    }
 
     val factory = remember { { mediaPlayerComponent } }
     /* OR the following code and using SwingPanel(factory = { factory }, ...) */
@@ -126,7 +140,6 @@ private fun MediaPlayer.setupVideoFinishHandler(onFinish: (() -> Unit)?) {
         val listener = object : MediaPlayerEventAdapter() {
             override fun stopped(mediaPlayer: MediaPlayer) {
                 onFinish?.invoke()
-                mediaPlayer.controls().play()
             }
         }
         events().addMediaPlayerEventListener(listener)
@@ -180,6 +193,8 @@ private fun MediaPlayer.emitProgressTo(state: MutableState<Progress>) {
     }
 }
 
+
+//
 @Composable
 private fun MediaPlayer.checkTimelineProgress() {
     val viewModel = viewModel { MainViewModel() }
@@ -191,8 +206,11 @@ private fun MediaPlayer.checkTimelineProgress() {
         while (isActive) {
             val reportedPlayerTime = viewModel.playerModel.progressState.value.time
 
+            // if reached end of timeline, reset back to start
             if (viewModel.timelineModel.atEndOfTimeline(reportedPlayerTime) && !viewModel.playerModel.isPaused) {
+                println("reached end of timeline, restarting back to start")
                 viewModel.playerModel.isPaused = true
+                viewModel.timelineModel.moveToSegment(0)
 
                 // no need to continue checking. any movement in the timeline will recompose the player and start a new
                 // end of timeline check loop
@@ -200,7 +218,9 @@ private fun MediaPlayer.checkTimelineProgress() {
             }
 
             // update timeline with new time
-            viewModel.timelineModel.checkIfNextSegment(reportedPlayerTime)
+            else if (!viewModel.playerModel.isPaused) {
+                viewModel.timelineModel.checkIfNextSegment(reportedPlayerTime)
+            }
 
             delay(100)
         }

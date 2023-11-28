@@ -78,8 +78,7 @@ fun MainPanel() {
                             seekTime = viewModel.timelineModel.seekedTime,
                             isFullscreen = false,
                             progressState = viewModel.playerModel.progressState,
-                            modifier = Modifier.offset(x = 1.dp).fillMaxWidth().fillMaxHeight().weight(1f),
-                            onFinish = {}
+                            modifier = Modifier.offset(x = 1.dp).fillMaxWidth().fillMaxHeight().weight(1f)
                         )
 
                         PlayerControls(Modifier.padding(5.dp).height(50.dp))
