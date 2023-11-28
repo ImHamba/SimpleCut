@@ -18,12 +18,16 @@ class TimelineModel {
         segments.add(segment)
     }
 
+    fun isEmpty(): Boolean {
+        return segments.size == 0
+    }
+
     // delete segment from timeline by index
     fun deleteSegment(deleteIndex: Int) {
         segments.removeAt(deleteIndex)
 
         // if the last segment was deleted return early
-        if (segments.size == 0) {
+        if (isEmpty()) {
             currentSegmentIndex = 0
             return
         }

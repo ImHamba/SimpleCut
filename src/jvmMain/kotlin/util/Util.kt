@@ -2,7 +2,6 @@ package util
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.material.Text
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputScope
 import engine.model.TimelineSegment
@@ -10,8 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ui.components.openSaveDialog
 import java.awt.Desktop
-import java.awt.FileDialog
-import java.awt.Frame
 import java.io.File
 import java.net.URI
 import java.nio.file.Path
@@ -66,7 +63,6 @@ fun handleExport(segments: List<TimelineSegment>, scope: CoroutineScope) {
 
     // run video export in a coroutine
     scope.launch {
-
         outputPath?.let {
             exportVideoOutput(segments, it)
 

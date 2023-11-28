@@ -47,7 +47,7 @@ fun FrameWindowScope.App() {
 @OptIn(ExperimentalSplitPaneApi::class)
 @Composable
 fun MainPanel() {
-    val viewModel = viewModel() { MainViewModel() }
+    val viewModel = viewModel { MainViewModel() }
 
     Column {
         Row(Modifier.weight(1f)) {

@@ -9,7 +9,7 @@ import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
 
 
-enum class UiSelection() {
+enum class UiSelection {
     SOURCE, SEGMENT
 }
 
@@ -52,7 +52,7 @@ class MainViewModel : ViewModel() {
 
     init {
         //test segments
-        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 10f, 30f))
+//        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 10f, 30f))
 //        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\95kg squat.mp4", 50f, 52.5F))
 //        timelineModel.addSegment(TimelineSegment("D:\\My stuff\\Gym\\135kg deadlift.mp4", 10f, 30f))
 //        timelineModel.addSegment(

@@ -10,7 +10,7 @@ import java.text.DecimalFormat
 
 @Composable
 fun TimeDisplay(modifier: Modifier = Modifier) {
-    val viewModel = viewModel() { MainViewModel() }
+    val viewModel = viewModel { MainViewModel() }
 
     // get the total time along the timeline up to the current reported player time in the current segment
     val tlTime = viewModel.timelineModel.playerTimeToTimelineTime(viewModel.playerModel.progressState.value.time)

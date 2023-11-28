@@ -22,7 +22,7 @@ import util.rememberArrowTopRight
 
 @Composable
 fun PlayerControls(modifier: Modifier = Modifier) {
-    val viewModel = viewModel() { MainViewModel() }
+    val viewModel = viewModel { MainViewModel() }
     // player and trimming controls
     Row(
         modifier.fillMaxWidth(),//.height(50.dp),

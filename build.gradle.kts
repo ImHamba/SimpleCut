@@ -4,10 +4,11 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+//    id("dev.hydraulic.conveyor") version "1.6"
 }
 
 group = "com.ImHamba"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     google()
@@ -55,9 +56,14 @@ compose.desktop {
     application {
         mainClass = "MainKt"
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb)
+            targetFormats(TargetFormat.Exe)
             packageName = "SimpleCut"
             packageVersion = "1.0.0"
+        }
+
+        buildTypes.release.proguard {
+//            obfuscate.set(true)
+            configurationFiles.from(project.file("proguard-rules.pro"))
         }
     }
 }

@@ -85,7 +85,7 @@ fun SourceDragOverlay(content: @Composable () -> Unit) {
                 }
 
                 // if the timeline has no elements, just add it in
-                else if (viewModel.timelineModel.segments.size == 0) {
+                else if (viewModel.timelineModel.isEmpty()) {
                     viewModel.timelineModel.addSegment(newSegment)
                     viewModel.timelineModel.moveToSegment(0)
                 }

@@ -31,7 +31,7 @@ import util.*
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun Timeline() {
-    val viewModel = viewModel() { MainViewModel() }
+    val viewModel = viewModel { MainViewModel() }
 
     val tlDuration = viewModel.timelineModel.getDuration()
 
@@ -56,7 +56,7 @@ fun Timeline() {
     // determine appropriate time to use for slider position
     val sliderTime =
         // slider stays at left side if no segments
-        if (viewModel.timelineModel.segments.size == 0) 0f
+        if (viewModel.timelineModel.isEmpty()) 0f
 
         // if seeking just occurred, set slider to seeked time
         // this prevents the slider snapping back to the old player time for a short time before the player has
@@ -66,7 +66,14 @@ fun Timeline() {
         // otherwise use the player time by default
         else playerTime
 
-    val sliderPos by mutableStateOf(viewModel.timelineModel.playerTimeToTimelineTime(sliderTime) / viewModel.timelineModel.getDuration())
+
+    val sliderPos by mutableStateOf(
+        (viewModel.timelineModel.playerTimeToTimelineTime(sliderTime) / viewModel.timelineModel.getDuration()).let {
+            // check if division by 0 occurred giving NaN and return 0f instead
+            if (it.isNaN()) 0f
+            else it
+        }
+    )
 
     Slider(
         value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
@@ -148,7 +155,7 @@ private fun Playhead(timeRulerHeight: Dp) {
 
 @Composable
 private fun Track(modifier: Modifier = Modifier, rulerHeight: Dp) {
-    val viewModel = viewModel() { MainViewModel() }
+    val viewModel = viewModel { MainViewModel() }
     Column(modifier.fillMaxSize()) {
         TimeRuler(Modifier.height(rulerHeight), viewModel.timelineModel.getDuration())
 
