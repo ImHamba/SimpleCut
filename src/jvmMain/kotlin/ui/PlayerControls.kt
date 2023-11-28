@@ -32,7 +32,13 @@ fun PlayerControls(modifier: Modifier = Modifier) {
         // split timeline button
         ControlButton(
             Modifier.size(50.dp),
-            onClick = { viewModel.splitCurrentSegment() },
+            onClick = {
+                try {
+                    viewModel.splitCurrentSegment()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            },
             enabled = viewModel.timelineModel.segments.size > 0,
             toolTipText = "Split timeline"
         )

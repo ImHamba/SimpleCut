@@ -50,7 +50,8 @@ class TimelineModel {
     // delete by reference to segment
     fun deleteSegment(segment: TimelineSegment) {
         val index = segments.indexOfFirst { it === segment }
-        if (index < 0) throw IllegalArgumentException("Tried to delete segment from timeline that was not in the timeline")
+        if (index < 0)
+            throw IllegalArgumentException("Tried to delete segment from timeline that was not in the timeline")
         deleteSegment(index)
     }
 
@@ -118,6 +119,7 @@ class TimelineModel {
         }
 
         // if reached end of timeline, then the given time was out of bounds
+//        return TimelinePosition(segments.size, segments.last().endTime)
         throw IllegalArgumentException("Tried to access time on timeline beyond its end time")
     }
 

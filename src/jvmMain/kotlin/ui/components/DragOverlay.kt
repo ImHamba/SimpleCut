@@ -79,7 +79,11 @@ fun SourceDragOverlay(content: @Composable () -> Unit) {
                 if (hoveredSegmentIndex != null && viewModel.timelineModel.segments[hoveredSegmentIndex] !== newSegment) {
                     // delete the new segment if its swapping from another place on the timeline
                     if (viewModel.timelineModel.segments.any { it === newSegment })
-                        viewModel.timelineModel.deleteSegment(newSegment)
+                        try {
+                            viewModel.timelineModel.deleteSegment(newSegment)
+                        } catch (ex: Exception) {
+                            ex.printStackTrace()
+                        }
                     viewModel.timelineModel.addSegmentAt(newSegment, hoveredSegmentIndex)
                     viewModel.timelineModel.moveToSegment(hoveredSegmentIndex)
                 }
@@ -93,7 +97,11 @@ fun SourceDragOverlay(content: @Composable () -> Unit) {
 
             // if drag leaves the timeline, delete the new segment if it was inserted into the timeline
             else if (viewModel.timelineModel.segments.any { it === newSegment })
-                viewModel.timelineModel.deleteSegment(newSegment)
+                try {
+                    viewModel.timelineModel.deleteSegment(newSegment)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
         }
     }
 }

@@ -29,7 +29,13 @@ fun FrameWindowScope.FilledMenuBar() {
         Menu("Edit") {
             Item(
                 "Split segment",
-                onClick = { viewModel.splitCurrentSegment() },
+                onClick = {
+                    try {
+                        viewModel.splitCurrentSegment()
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
+                    }
+                },
                 enabled = viewModel.timelineModel.segments.size > 0
             )
             Item(

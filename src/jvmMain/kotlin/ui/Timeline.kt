@@ -89,7 +89,11 @@ fun Timeline() {
             if (!sliderEnabled) return@Slider
 
             // once drag has completed, update the timeline model with the final value
-            viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
+            try {
+                viewModel.timelineModel.moveToPositionOnTimeline(tempSliderPos * tlDuration)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
             justSeeked = true
             tempSliderPos = 0f
         },
