@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import engine.viewmodel.MainViewModel
+import kotlinx.coroutines.GlobalScope
 import moe.tlaster.precompose.viewmodel.viewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
 import ui.components.ControlButton

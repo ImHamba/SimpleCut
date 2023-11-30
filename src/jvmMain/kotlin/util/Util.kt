@@ -58,16 +58,32 @@ fun formatTime(seconds: Float): String {
     return "$formattedMins:$formattedSeconds"
 }
 
-fun handleExport(segments: List<TimelineSegment>, scope: CoroutineScope) {
+fun handleExport(segments: List<TimelineSegment>, scope: CoroutineScope): Boolean {
+    val logTxtPath = "temp/log.txt"
+    val logTxtFile = File(logTxtPath)
+    logTxtFile.parentFile.mkdirs()
+
     val outputPath = openSaveDialog()
 
-    // run video export in a coroutine
+    var result = false
+
+//  run video export in a coroutine
     scope.launch {
         outputPath?.let {
-            exportVideoOutput(segments, it)
+            try {
+                result = exportVideoOutput(segments, it)
 
-            // open location of saved file after export
-            Desktop.getDesktop().open(File(outputPath).parentFile)
+
+//              open location of saved file after export
+                Desktop.getDesktop().open(File(outputPath).parentFile)
+
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+
+                logTxtFile.writeText(ex.stackTraceToString())
+            }
         }
     }
+
+    return result
 }

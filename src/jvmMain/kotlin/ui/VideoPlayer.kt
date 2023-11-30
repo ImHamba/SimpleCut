@@ -41,27 +41,23 @@ internal fun VideoPlayerImpl(
     mediaPlayer.emitProgressTo(progressState)
     mediaPlayer.checkTimelineProgress()
     mediaPlayer.setupVideoFinishHandler {
-
-
         if (viewModel.timelineModel.atLastSegment()) {
             println("reached end of video file at last segment, restarting back to start")
             viewModel.playerModel.isPaused = true
             viewModel.timelineModel.moveToSegment(0)
-//            mediaPlayer.controls().play()
+            viewModel.restartCount++
 
-//            viewModel.timelineModel.seekedTime = viewModel.timelineModel.getCurrentSegment().endTime
         } else if (!viewModel.playerModel.isPaused) {
             println("reached end of video file at intermediate segment, going to next segment")
             viewModel.timelineModel.startNextSegment()
         }
-
     }
 
     val factory = remember { { mediaPlayerComponent } }
     /* OR the following code and using SwingPanel(factory = { factory }, ...) */
     // val factory by rememberUpdatedState(mediaPlayerComponent)
 
-    LaunchedEffect(url) {
+    LaunchedEffect(url, viewModel.restartCount) {
         // if video is paused when url is changed, add a listener that will pause video immediately
         // using set-paused option only shows the video as a black screen initially until it is played again
         if (isPaused) {
@@ -82,7 +78,9 @@ internal fun VideoPlayerImpl(
         )
     }
 
-    LaunchedEffect(seekTime) { mediaPlayer.controls().setTime((seekTime * 1000).toLong()) }
+    LaunchedEffect(seekTime, viewModel.timelineModel.seekCount) {
+        mediaPlayer.controls().setTime((seekTime * 1000).toLong())
+    }
     LaunchedEffect(speed) { mediaPlayer.controls().setRate(speed) }
     LaunchedEffect(volume) { mediaPlayer.audio().setVolume(volume.toPercentage()) }
     LaunchedEffect(isPaused) {
@@ -157,8 +155,6 @@ private fun MediaPlayer.setupVideoFinishHandler(onFinish: (() -> Unit)?) {
  */
 @Composable
 private fun MediaPlayer.emitProgressTo(state: MutableState<Progress>) {
-    val viewModel = viewModel { MainViewModel() }
-
     LaunchedEffect(key1 = Unit) {
         var oldPlayerTime: Long = 0
         var timeOffset: Long = 0
@@ -211,6 +207,7 @@ private fun MediaPlayer.checkTimelineProgress() {
                 println("reached end of timeline, restarting back to start")
                 viewModel.playerModel.isPaused = true
                 viewModel.timelineModel.moveToSegment(0)
+                viewModel.restartCount++
 
                 // no need to continue checking. any movement in the timeline will recompose the player and start a new
                 // end of timeline check loop

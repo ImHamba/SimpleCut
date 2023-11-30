@@ -35,7 +35,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-//    var recomposeTrigger by mutableStateOf(false)
+    var restartCount = 0
 
     // indicates the last type of ui element that was interacted with to determine what some keypresses do
     // e.g. whether delete deletes selected source or segment

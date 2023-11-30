@@ -70,11 +70,11 @@ fun getVideoDuration(videoUrl: String): Float {
     return duration
 }
 
-suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String) {
+suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String): Boolean {
     FFmpegLogCallback.set()
-    FFmpegLogCallback.setLevel(AV_LOG_WARNING)
+//    FFmpegLogCallback.setLevel(AV_LOG_WARNING)
 
-    withContext(Dispatchers.IO) {
+    return withContext(Dispatchers.IO) {
         // create a grabber for each segment and start them
         val grabbers = segments.map {
             FFmpegFrameGrabber(it.videoUrl).apply {
@@ -82,12 +82,12 @@ suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: Strin
             }
         }
 
-//        grabbers.forEach {
-//            println(
-//                "ac: ${it.audioCodec}\nvc: ${it.videoCodec}\nrot: ${it.displayRotation}\n" +
-//                        "sample: ${it.sampleRate}\nwidth: ${it.imageWidth}\nheight: ${it.imageHeight}\nframerate: ${it.frameRate}"
-//            )
-//        }
+        grabbers.forEach {
+            println(
+                "ac: ${it.audioCodec}\nvc: ${it.videoCodec}\nrot: ${it.displayRotation}\n" +
+                        "sample: ${it.sampleRate}\nwidth: ${it.imageWidth}\nheight: ${it.imageHeight}\nframerate: ${it.frameRate}"
+            )
+        }
 
         // check if video properties align to allow simple concat muxer
         val simpleConcatPossible = grabbers.all {
@@ -101,38 +101,47 @@ suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: Strin
 
         val ffmpeg: String = Loader.load(ffmpeg::class.java)
 
-        val pb: ProcessBuilder
-        if (simpleConcatPossible) {
-            println("Simple concat")
+        try {
 
-            val concatString = segments.map { segment ->
-                "file '${segment.videoUrl}'\ninpoint ${segment.startTime}\noutpoint ${segment.endTime}"
-            }.joinToString("\n")
+            val pb: ProcessBuilder
+            if (simpleConcatPossible) {
+                println("Simple concat")
 
-            val concatTxtPath = "temp/concat.txt"
-            val concatTxtFile = File(concatTxtPath)
-            concatTxtFile.writeText(concatString)
+                val concatString = segments.map { segment ->
+                    "file '${segment.videoUrl}'\ninpoint ${segment.startTime}\noutpoint ${segment.endTime}"
+                }.joinToString("\n")
 
-            pb = ProcessBuilder(
-                ffmpeg, "-y", "-f", "concat", "-safe", "0",
-                "-i", concatTxtFile.absolutePath,
-                "-c", "copy", outputPath
-            )
+                val concatTxtPath = "temp/concat.txt"
+                val concatTxtFile = File(concatTxtPath)
+                concatTxtFile.parentFile.mkdirs()
+                concatTxtFile.writeText(concatString)
 
-            pb.inheritIO().start().waitFor()
-            concatTxtFile.delete()
+                pb = ProcessBuilder(
+                    ffmpeg, "-y", "-f", "concat", "-safe", "0",
+                    "-i", concatTxtFile.absolutePath,
+                    "-c", "copy", outputPath
+                )
 
-        } else {
-            println("filter_complex")
+                pb.inheritIO().start().waitFor()
+                concatTxtFile.delete()
 
-            pb = ProcessBuilder(
-                ffmpeg, "-y", "-i", segments[0].videoUrl, "-i", segments[1].videoUrl,
-                "-filter_complex", "\"[0:v] [0:a] [1:v] [1:a]concat=n=2:v=1:a=1 [v] [a]\"",
-                "-map", "\"[v]\"", "-map", "\"[a]\"", outputPath
-            )
+                return@withContext true
 
-            pb.inheritIO().start()
+            } else {
+                return@withContext false
+                //            println("filter_complex")
+                //
+                //            pb = ProcessBuilder(
+                //                ffmpeg, "-y", "-i", segments[0].videoUrl, "-i", segments[1].videoUrl,
+                //                "-filter_complex", "\"[0:v] [0:a] [1:v] [1:a]concat=n=2:v=1:a=1 [v] [a]\"",
+                //                "-map", "\"[v]\"", "-map", "\"[a]\"", outputPath
+                //            )
+                //
+                //            pb.inheritIO().start()
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return@withContext false
         }
-
     }
 }

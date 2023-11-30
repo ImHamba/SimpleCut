@@ -37,7 +37,7 @@ fun Timeline() {
 
     // temporary position used while actively dragging slider
     // this prevents many seeks being sent to the player until the slider is released at a final chosen time
-    var tempSliderPos by remember { mutableStateOf(0f) }
+    var tempSliderPos by remember { mutableStateOf(-1f) }
 
     // flag to enable or disable the slider based on where its being clicked, so clicks on the segments dont seek but
     // clicks on the time ruler do
@@ -67,26 +67,32 @@ fun Timeline() {
         else playerTime
 
 
+    // get slider position based on the slider time
     val sliderPos by mutableStateOf(
-        (viewModel.timelineModel.playerTimeToTimelineTime(sliderTime) / viewModel.timelineModel.getDuration()).let {
-            // check if division by 0 occurred giving NaN and return 0f instead
-            if (it.isNaN()) 0f
-            else it
-        }
+        // if the timeline is empty default to position 0
+        if (viewModel.timelineModel.getDuration() == 0f)
+            0f
+        else
+            (viewModel.timelineModel.playerTimeToTimelineTime(sliderTime) / viewModel.timelineModel.getDuration())
     )
 
     Slider(
-        value = if (tempSliderPos == 0f) sliderPos else tempSliderPos,
+        value = if (tempSliderPos == -1f) sliderPos else tempSliderPos,
         onValueChange = {
             // ignore value change if slider is disabled
             if (!sliderEnabled) return@Slider
 
             // update temporary position while dragging
             tempSliderPos = it
+
+            println(tempSliderPos)
         },
         onValueChangeFinished = {
             // ignore value change if slider is disabled
             if (!sliderEnabled) return@Slider
+
+
+            println("slider drag finished at $tempSliderPos")
 
             // once drag has completed, update the timeline model with the final value
             try {
@@ -95,7 +101,8 @@ fun Timeline() {
                 ex.printStackTrace()
             }
             justSeeked = true
-            tempSliderPos = 0f
+            tempSliderPos = -1f
+
         },
         thumb = { Playhead(rulerHeight) },
         track = {

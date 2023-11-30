@@ -1,9 +1,6 @@
 package engine.model
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 
 class TimelineModel {
     var segments = mutableStateListOf<TimelineSegment>()
@@ -12,7 +9,21 @@ class TimelineModel {
     var currentSegmentIndex by mutableStateOf(0)
     var selectedSegmentIndex: Int? by mutableStateOf(null)
 
-    var seekedTime: Float by mutableStateOf(0f)
+    var seekCount by mutableStateOf(0)
+
+    // seekedTime has custom mutablestate that also increments the value of seekCount when changed
+    // this allows the videoplayer to respond to a set of seekedTime, even if its to the same value as it already currently is
+    var seekedTime by run {
+        val state = mutableStateOf(0f)
+        object : MutableState<Float> by state {
+            override var value: Float
+                get() = state.value
+                set(value) {
+                    state.value = value
+                    seekCount++
+                }
+        }
+    }
 
     fun addSegment(segment: TimelineSegment) {
         segments.add(segment)
@@ -136,6 +147,7 @@ class TimelineModel {
     }
 
     fun getDurationUntilSegment(index: Int): Float {
+        if (index >= segments.size) throw IndexOutOfBoundsException("Tried to get cumulative duration of segments beyond number of segments in timeline")
         return segments.slice(0 until index).map { it.getDuration() }.fold(0f) { acc, duration -> acc + duration }
     }
 
