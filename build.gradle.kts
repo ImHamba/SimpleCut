@@ -37,8 +37,10 @@ kotlin {
                 implementation("org.bytedeco:javacv-platform:1.5.9")
 
                 // for file dialog
-                implementation("org.lwjgl:lwjgl-tinyfd:3.3.3")
+                implementation("org.lwjgl:lwjgl:3.3.3")
                 implementation("org.lwjgl:lwjgl:3.3.3:natives-windows")
+                implementation("org.lwjgl:lwjgl-tinyfd:3.3.3")
+                implementation("org.lwjgl:lwjgl-tinyfd:3.3.3:natives-windows")
 
                 implementation("org.jetbrains.compose.components:components-splitpane-desktop:1.5.10")
 
