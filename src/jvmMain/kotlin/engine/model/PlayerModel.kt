@@ -10,13 +10,12 @@ import util.Progress
 import java.awt.Component
 import java.util.*
 
+/**
+ * Class representing the state of the video player
+ */
 class PlayerModel {
-
     var isPaused by mutableStateOf(true)
     var volume: Float by mutableStateOf(1f)
     var speed: Float by mutableStateOf(0f)
-//    var seek: Float by mutableStateOf(0f)
-
-    //    var isFullscreen: Boolean by mutableStateOf(false)
     var progressState: MutableState<Progress> = mutableStateOf(Progress(0f, 0f))
 }

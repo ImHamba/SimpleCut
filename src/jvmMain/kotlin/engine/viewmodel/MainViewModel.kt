@@ -13,28 +13,15 @@ enum class UiSelection {
     SOURCE, SEGMENT
 }
 
+/**
+ * View model for the main video editor view
+ */
 class MainViewModel : ViewModel() {
     val timelineModel = TimelineModel()
     val playerModel = PlayerModel()
     val sourcesModel = SourcesModel()
 
-    init {
-        viewModelScope.launch {
-            snapshotFlow { timelineModel.segments.toList() }
-                .collect { currentSegments ->
-                    // Update history whenever segments change
-                    if (currentSegments != timelineModel.history.currentSnapshot.segments) {
-                        timelineModel.history.addRecord(
-                            currentSegments,
-                            timelineModel.currentSegmentIndex,
-                            playerModel.progressState.value.time
-                        )
-                        println("New history ${timelineModel.history}")
-                    }
-                }
-        }
-    }
-
+    // count of restarts of the timeline
     var restartCount = 0
 
     // indicates the last type of ui element that was interacted with to determine what some keypresses do
@@ -48,6 +35,24 @@ class MainViewModel : ViewModel() {
     // stores position and size of timeline for detection of dragging source over it
     var timelinePos by mutableStateOf(Offset(0f, 0f))
     var timelineDims by mutableStateOf(IntSize(0, 0))
+
+
+    init {
+        // Set up automatic updates of timeline history whenever segments change
+        viewModelScope.launch {
+            snapshotFlow { timelineModel.segments.toList() }
+                .collect { currentSegments ->
+                    if (currentSegments != timelineModel.history.currentRecord.segments) {
+                        timelineModel.history.addRecord(
+                            currentSegments,
+                            timelineModel.currentSegmentIndex,
+                            playerModel.progressState.value.time
+                        )
+                        println("New history ${timelineModel.history}")
+                    }
+                }
+        }
+    }
 
 
     init {
@@ -72,6 +77,9 @@ class MainViewModel : ViewModel() {
         )
     }
 
+    /**
+     * Toggles the pause state of the player. Only allows playing if not at the end of the timeline.
+     */
     fun togglePlayerPause() {
         // dont unpause if we are already paused and at end of timeline
         if (playerModel.isPaused && timelineModel.atEndOfTimeline(playerModel.progressState.value.time)) {
@@ -81,6 +89,9 @@ class MainViewModel : ViewModel() {
         playerModel.isPaused = !playerModel.isPaused
     }
 
+    /**
+     * Splits the current segment into two, at the current position on the timeline
+     */
     fun splitCurrentSegment() {
         val splitTime = playerModel.progressState.value.time
 
@@ -91,7 +102,10 @@ class MainViewModel : ViewModel() {
             timelineModel.splitSegment(splitTime = splitTime)
     }
 
-    fun selectSegment(selectedSegmentIndex: Int) {
+    /**
+     * Toggles select of a given segment in the timeline
+     */
+    fun toggleSegmentSelect(selectedSegmentIndex: Int) {
         // deselect segment if it is already selected, otherwise set it as selected
         if (timelineModel.selectedSegmentIndex == selectedSegmentIndex) {
             timelineModel.selectedSegmentIndex = null
@@ -99,33 +113,39 @@ class MainViewModel : ViewModel() {
 
         } else {
             timelineModel.selectedSegmentIndex = selectedSegmentIndex
+
+            // set the last selected UI element as a segment
             lastSelectType = UiSelection.SEGMENT
         }
 
-        // deselect the Source when interacting with sources panel
+        // deselect any possibly selected Source
         sourcesModel.selectedSource = null
     }
 
+    /**
+     * Selects a given video source in the sources panel
+     */
     fun selectSource(source: VideoSource) {
         sourcesModel.selectedSource = source
+
+        // set the last selected UI element as a source
         lastSelectType = UiSelection.SOURCE
 
         // deselect the timeline segment when interacting with sources panel
         timelineModel.selectedSegmentIndex = null
     }
 
+    /**
+     * Deletes the currently selected UI element based on which was last interacted with
+     */
     fun deleteUiSelection() {
         when (lastSelectType) {
             UiSelection.SEGMENT -> {
-                deleteSelectedSegment()
+                timelineModel.deleteSelectedSegment()
             }
 
             UiSelection.SOURCE -> {
-                // delete selected source if its not null
-                sourcesModel.selectedSource?.let {
-                    sourcesModel.removeSource(it)
-                    sourcesModel.selectedSource = null
-                }
+                sourcesModel.deleteSelectedSource()
             }
 
             null -> {
@@ -134,11 +154,5 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun deleteSelectedSegment() {
-        // delete selected segment if its not null
-        timelineModel.selectedSegmentIndex?.let {
-            timelineModel.deleteSegment(it)
-            timelineModel.selectedSegmentIndex = null
-        }
-    }
+
 }

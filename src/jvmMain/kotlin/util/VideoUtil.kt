@@ -18,7 +18,9 @@ import kotlin.math.roundToLong
 
 data class Progress(val fraction: Float, val time: Float)
 
-// fetches a frame from a video file
+/**
+ * fetches a frame at a particular [time] from a video file and returns it as an ImageBitmap
+ */
 fun getFrameFromVideo(videoUrl: String, time: Float = 0f): ImageBitmap {
     val buffImage: BufferedImage
 
@@ -60,6 +62,9 @@ fun getFrameFromVideo(videoUrl: String, time: Float = 0f): ImageBitmap {
     return buffImage.toComposeImageBitmap()
 }
 
+/**
+ * Gets the duration of a video
+ */
 fun getVideoDuration(videoUrl: String): Float {
     val duration: Float
     FFmpegFrameGrabber(videoUrl).use { grabber ->
@@ -70,10 +75,13 @@ fun getVideoDuration(videoUrl: String): Float {
     return duration
 }
 
+/**
+ * Exports a list of video timeline segments to an output video file
+ */
 suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: String): Boolean {
     FFmpegLogCallback.set()
-//    FFmpegLogCallback.setLevel(AV_LOG_WARNING)
 
+    // generate video file in coroutine to avoid blocking ui thread
     return withContext(Dispatchers.IO) {
         // create a grabber for each segment and start them
         val grabbers = segments.map {
@@ -102,11 +110,13 @@ suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: Strin
         val ffmpeg: String = Loader.load(ffmpeg::class.java)
 
         try {
-
             val pb: ProcessBuilder
+
+            // generate output video with simple ffmpeg concatenation
             if (simpleConcatPossible) {
                 println("Simple concat")
 
+                // generate concat instructions for ffmpeg in a txt file
                 val concatString = segments.map { segment ->
                     "file '${segment.videoUrl}'\ninpoint ${segment.startTime}\noutpoint ${segment.endTime}"
                 }.joinToString("\n")
@@ -127,7 +137,10 @@ suspend fun exportVideoOutput(segments: List<TimelineSegment>, outputPath: Strin
 
                 return@withContext true
 
-            } else {
+            }
+
+            // generate output video with full ffmpeg re-encoding
+            else {
                 return@withContext false
                 //            println("filter_complex")
                 //

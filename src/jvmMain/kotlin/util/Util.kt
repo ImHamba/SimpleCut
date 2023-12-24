@@ -18,8 +18,10 @@ import kotlin.io.path.absolutePathString
 import kotlin.math.abs
 
 
-// detects a downclick without consuming the event
-// adapted from https://proandroiddev.com/android-touch-system-part-5-how-gestures-work-in-jetpack-compose-ef7e74703b6a
+/**
+ * PointerInputScope extension function that detects a downclick without consuming the event
+ * adapted from https://proandroiddev.com/android-touch-system-part-5-how-gestures-work-in-jetpack-compose-ef7e74703b6a
+ */
 suspend fun PointerInputScope.detectDownClickUncomsumed(
     onTap: ((Offset) -> Unit)
 ) {
@@ -29,7 +31,9 @@ suspend fun PointerInputScope.detectDownClickUncomsumed(
     }
 }
 
-// detects a downclick
+/**
+ * PointerInputScope extension function that detects a downclick event and consumes it
+ */
 suspend fun PointerInputScope.detectDownClick(
     onTap: ((Offset) -> Unit)
 ) {
@@ -40,6 +44,9 @@ suspend fun PointerInputScope.detectDownClick(
     }
 }
 
+/**
+ * converts a local file URI string to an absolute path string
+ */
 fun uriToAbsolutePath(fileUri: String): String {
     val uri = URI(fileUri)
     val path: Path = Paths.get(uri)
@@ -48,9 +55,16 @@ fun uriToAbsolutePath(fileUri: String): String {
     return path.absolutePathString()
 }
 
-// taken from https://stackoverflow.com/a/59898110
+/**
+ * An extension function for List of float that returns the value in the list closest to the provided argument
+ * taken from https://stackoverflow.com/a/59898110
+ */
 fun List<Float>.closest(value: Float) = minBy { abs(value - it) }
 
+
+/**
+ * converts a number of [seconds] to a formatted minutes/seconds string (in the format 00:00.00)
+ */
 fun formatTime(seconds: Float): String {
     val minutes = seconds.toInt() / 60
     val formattedMins = DecimalFormat("00").format(minutes)
@@ -58,32 +72,31 @@ fun formatTime(seconds: Float): String {
     return "$formattedMins:$formattedSeconds"
 }
 
+/**
+ * takes a list of timeline [segments], prompts for save location and outputs video file
+ */
 fun handleExport(segments: List<TimelineSegment>, scope: CoroutineScope): Boolean {
     val logTxtPath = "temp/log.txt"
     val logTxtFile = File(logTxtPath)
     logTxtFile.parentFile.mkdirs()
 
     val outputPath = openSaveDialog()
+    var exportSuccess = false
 
-    var result = false
-
-//  run video export in a coroutine
+//  run video export in a coroutine to avoid blocking ui thread
     scope.launch {
         outputPath?.let {
             try {
-                result = exportVideoOutput(segments, it)
+                exportSuccess = exportVideoOutput(segments, it)
 
-
-//              open location of saved file after export
+                // open location of saved file after export
                 Desktop.getDesktop().open(File(outputPath).parentFile)
-
             } catch (ex: Exception) {
                 ex.printStackTrace()
-
                 logTxtFile.writeText(ex.stackTraceToString())
             }
         }
     }
 
-    return result
+    return exportSuccess
 }

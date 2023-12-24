@@ -1,6 +1,8 @@
 package engine.model
 
 import androidx.compose.runtime.*
+import engine.viewmodel.MainViewModel
+import moe.tlaster.precompose.viewmodel.viewModel
 
 class TimelineModel {
     var segments = mutableStateListOf<TimelineSegment>()
@@ -9,10 +11,10 @@ class TimelineModel {
     var currentSegmentIndex by mutableStateOf(0)
     var selectedSegmentIndex: Int? by mutableStateOf(null)
 
+    // seekedTime is a custom mutablestate that tracks the currently seeked time on the player
+    // when updated, it also increments the value of seekCount. this allows the videoplayer to respond to a updated of
+    // seekedTime, even if the user seeks to the same value as it already currently is
     var seekCount by mutableStateOf(0)
-
-    // seekedTime has custom mutablestate that also increments the value of seekCount when changed
-    // this allows the videoplayer to respond to a set of seekedTime, even if its to the same value as it already currently is
     var seekedTime by run {
         val state = mutableStateOf(0f)
         object : MutableState<Float> by state {
@@ -57,8 +59,7 @@ class TimelineModel {
         }
     }
 
-
-    // delete by reference to segment
+    // delete segment from timeline by reference to segment
     fun deleteSegment(segment: TimelineSegment) {
         val index = segments.indexOfFirst { it === segment }
         if (index < 0)
@@ -74,10 +75,13 @@ class TimelineModel {
             TimelineSegment("", 0f, 1f)
     }
 
+    // checks if the current segment in the timeline is the last segment of the timeline
     fun atLastSegment(): Boolean {
         return currentSegmentIndex == segments.size - 1
     }
 
+    // checks if the player is at the end of the timeline based on a given time from the player (i.e. whether we are at
+    // the last segment of timeline and the player time is beyond the end of that segment)
     fun atEndOfTimeline(reportedPlayerTime: Float): Boolean {
 //        println("at last: ${atLastSegment()}, player $reportedPlayerTime, end: ${segments.last().endTime}")
         return atLastSegment() && reportedPlayerTime > segments.last().endTime
@@ -92,7 +96,6 @@ class TimelineModel {
     fun getCurrentVideoUrl(): String {
         return getCurrentSegment().videoUrl
     }
-
 
     // splits a segment into two parts based on a time along that segment
     fun splitSegment(index: Int = currentSegmentIndex, splitTime: Float) {
@@ -146,12 +149,15 @@ class TimelineModel {
         return segments.map { it.getDuration() }.fold(0f) { acc, duration -> acc + duration }
     }
 
+    // get the cumulative duration of the timeline up to the given segment index (exclusive)
     fun getDurationUntilSegment(index: Int): Float {
         if (index >= segments.size) throw IndexOutOfBoundsException("Tried to get cumulative duration of segments beyond number of segments in timeline")
         return segments.slice(0 until index).map { it.getDuration() }.fold(0f) { acc, duration -> acc + duration }
     }
 
-    // updates the current video/time to the start of a given segment
+    /**
+     * updates the current video/time to the start of a given segment [index]
+     */
     fun moveToSegment(index: Int) {
         if (index >= segments.size || index < 0) throw IndexOutOfBoundsException("Index is out of bounds for timeline segments list")
 
@@ -161,8 +167,10 @@ class TimelineModel {
 //        println("index: $index, url: ${getCurrentVideoUrl()}, time: $currentSegmentTime")
     }
 
-    // checks if the current segment should be updated based on the real time passed in the video player
-    // returns true if next segment is started, or false otherwise
+    /**
+     * checks if the current segment should be updated based on the real time passed in the video player
+     * returns true if next segment is started, or false otherwise
+     */
     fun checkIfNextSegment(playerTime: Float): Boolean {
 
         // check if player time has passed the end of the current segment, and we are not at the last segment
@@ -173,18 +181,28 @@ class TimelineModel {
         return false
     }
 
+    /**
+     * moves the current segment to the next segment in the timeline and seeks to that segment's start time
+     */
     fun startNextSegment() {
+        if (atLastSegment())
+            throw IndexOutOfBoundsException("Tried to start next segment when already at end of timeline")
         currentSegmentIndex++
         seekedTime = getCurrentSegment().startTime
 
         println("Next segment: ${getCurrentSegment()}")
     }
 
+    /**
+     * converts the [reportedPlayerTime] within the current segment to the total time along the timeline
+     */
     fun playerTimeToTimelineTime(reportedPlayerTime: Float): Float {
         return getDurationUntilSegment(currentSegmentIndex) + (reportedPlayerTime - getCurrentSegment().startTime)
     }
 
-    // converts a position along the timeline as a number between 0 and 1 to the correpsonding segment index
+    /**
+     * converts a position along the timeline as a number between 0 and 1 to the correpsonding segment index
+     */
     fun getSegmentIndexAtPositionFraction(posFraction: Float): Int? {
         if (posFraction !in 0f..1f) return null
 
@@ -204,6 +222,20 @@ class TimelineModel {
         return null
     }
 
+    /**
+     * Deletes the selected segment from the timeline
+     */
+    fun deleteSelectedSegment() {
+        // delete selected segment if its not null
+        selectedSegmentIndex?.let {
+            deleteSegment(it)
+            selectedSegmentIndex = null
+        }
+    }
+
 }
 
+/**
+ * Class representing a position along the timeline
+ */
 data class TimelinePosition(val segmentIndex: Int, val time: Float)

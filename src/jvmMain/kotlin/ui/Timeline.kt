@@ -120,7 +120,7 @@ fun Timeline() {
                                 viewModel.timelineModel.getSegmentIndexAtPositionFraction(clickPosFrac)
 
                             clickedSegment?.let {
-                                viewModel.selectSegment(it)
+                                viewModel.toggleSegmentSelect(it)
                             }
                         }
                     }

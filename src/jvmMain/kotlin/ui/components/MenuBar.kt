@@ -40,7 +40,7 @@ fun FrameWindowScope.FilledMenuBar() {
             )
             Item(
                 "Delete selected segment",
-                onClick = { viewModel.deleteSelectedSegment() },
+                onClick = { viewModel.timelineModel.deleteSelectedSegment() },
                 enabled = viewModel.timelineModel.selectedSegmentIndex != null
             )
         }

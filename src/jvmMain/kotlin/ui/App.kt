@@ -3,7 +3,6 @@ package ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.*
@@ -11,7 +10,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
-import engine.model.TimelineSegment
 import engine.viewmodel.MainViewModel
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.viewmodel.viewModel
@@ -147,8 +145,8 @@ private fun keypressHandler(): Modifier {
             segments.addAll(if (it.key == Key.Z) history.undo() else history.redo())
 
             if (segments.size > 0) {
-                viewModel.timelineModel.moveToSegment(history.currentSnapshot.currentSegmentIndex)
-                viewModel.timelineModel.seekedTime = history.currentSnapshot.currentSegmentTime
+                viewModel.timelineModel.moveToSegment(history.currentRecord.currentSegmentIndex)
+                viewModel.timelineModel.seekedTime = history.currentRecord.currentSegmentTime
             }
         }
 
